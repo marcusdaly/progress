@@ -26,7 +26,7 @@ In order to progress, you need to **practice**. `progress` can track your practi
 ## Planning
 Planning is important in order to guide our progress toward our goals. There are two high-level parts of planning:
 1. **Long-term schedule**. How many days a week are you climbing? How many sets a week are you training each muscle group? Get a plan together that you can follow.
-2. **Individual session plan**. What exercises are you doing on your leg days? When during your typing practice will you add in punctuation to your all-lowercase typing? If you can have roughly do the same thing on the same days on a weekly basis, great. Try to abstract to some level where you can reliably repeat this schedule for many sessions, and you can go into the details in your practice log. 
+2. **Individual session plan**. What exercises are you doing on your leg days? When during your typing practice will you add in punctuation to your all-lowercase typing? If you can have roughly do the same thing on the same days on a weekly basis, great. Try to abstract to some level where you can reliably repeat this schedule for many sessions, and you can go into the details in your practice log. Finally, this should also outline what information should be recorded about this session.
 
 # Usage
 Now that we know what `progress` had to offer, let's see how we can use it.
@@ -51,6 +51,8 @@ First, pre-requisites:
 - python3.9
 
 Once you have python set up (preferably in a virtual environment), install the python requirements at `requirements.txt` with something like `python -m pip install -r requirements.txt`. 
+
+For convenience, we have provided a `.pre-commit-config.yml` file. This will run all linting & formatting on your code before making a commit. Please run `pre-commit install` to set up pre-commit hooks before making commits to use this.
 
 ## Code Outline
 Super simple now. Source code goes under `src`. This just contains a script, `main.py`.

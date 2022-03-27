@@ -1,0 +1,88 @@
+name: Lint and Check Safety
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - master
+
+jobs:
+
+  bandit:
+    name: bandit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: run bandit
+        uses: ./.github/actions/bandit
+        with:
+          args: -r . -s B101,B301,B403
+
+  black:
+    name: black
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: run black
+        uses: ./.github/actions/black
+        with:
+          args: --check --diff .
+
+  flake8:
+    name: flake8
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: run flake8
+        uses: ./.github/actions/flake8
+        with:
+          args: .
+
+  pylint:
+    name: pylint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: run pylint
+        uses: ./.github/actions/pylint
+        with:
+          entrypoint: ./.github/actions/pylint/entrypoint.sh
+          args: . --rcfile=.pylintrc
+
+  safety:
+    name: safety
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: run safety
+        uses: ./.github/actions/safety
+        with:
+          args: -r requirements.txt
+
+  isort:
+    name: isort
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: run isort
+        uses: ./.github/actions/isort
+        with:
+          args: . -c --diff

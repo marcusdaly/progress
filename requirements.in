@@ -1,1 +1,9 @@
 pip-tools
+black
+flake8
+safety
+bandit
+isort
+pylint
+pre-commit
+configurator[yaml]
