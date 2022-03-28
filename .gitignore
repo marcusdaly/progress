@@ -130,3 +130,6 @@ dmypy.json
 
 # Config file
 config.yml
+
+# vs code
+.vscode

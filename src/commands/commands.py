@@ -1,66 +1,90 @@
 """
 Main functionality of the app.
 """
-from config import create_config, get_activity_directory
-
-import os
-
+from activity import create_activity, get_activities, get_activity
+from config import create_config
+from plan import create_plan, get_plans
+from practice import create_practice
+from skill import create_skill, get_skills
 
 """
 Config
 """
-def handle_config_command(activity_directory: str):
-    create_config(activity_directory=activity_directory)
+
+
+def handle_config_command(activity_vault: str):
+    create_config(activity_vault=activity_vault)
+
 
 """
 Activity
 """
-def handle_activity_create_command(name: str):
-    # TODO check if exists
-    activity_directory = get_activity_directory()
-    os.mkdir(os.path.join(activity_directory, name))
+
+
+def handle_activity_create_command(activity: str):
+    create_activity(activity)
+
 
 def handle_activity_ls_command():
-    activity_directory = get_activity_directory()
-    paths = os.listdir(activity_directory)
-    activities = [path for path in paths if os.path.isdir(os.path.join(activity_directory, path)) and not path.startswith(".")]
+    activities = get_activities()
     print("Activities:\n\t" + "\n\t".join(activities))
 
-def handle_activity_info_command(name: str):
-    pass
+
+def handle_activity_info_command(activity: str):
+    activity = get_activity(activity=activity)
+    print(activity)
+
 
 """
 Skill
 """
-def handle_skill_create_command(name: str):
+
+
+def handle_skill_create_command(skill: str, activity: str):
+    create_skill(skill=skill, activity=activity)
+
+
+def handle_skill_ls_command(activity: str):
+    skills = get_skills(activity=activity)
+    print(f"{activity} Skills:\n\t" + "\n\t".join(skills))
+
+
+def handle_skill_info_command(skill: str):
     pass
 
-def handle_skill_ls_command():
-    pass
-
-def handle_skill_info_command(name: str):
-    pass
 
 """
 Plan
 """
-def handle_plan_create_command(name: str):
+
+
+def handle_plan_create_command(plan: str, activity: str):
+    create_plan(plan=plan, activity=activity)
+
+
+def handle_plan_ls_command(activity: str):
+    plans = get_plans(activity=activity)
+    print(f"{activity} Plans:\n\t" + "\n\t".join(plans))
+
+
+def handle_plan_info_command(plan: str):
     pass
 
-def handle_plan_ls_command():
-    pass
-
-def handle_plan_info_command(name: str):
-    pass
 
 """
 Practice
 """
-def handle_practice_create_command(name: str):
+
+
+def handle_practice_create_command(
+    session_type: str, plan: str, activity: str, date: str
+):
+    create_practice(session_type=session_type, plan=plan, activity=activity, date=date)
+
+
+def handle_practice_ls_command(activity: str):
     pass
 
-def handle_practice_ls_command():
-    pass
 
-def handle_practice_info_command(name: str):
+def handle_practice_info_command(practice: str, activity: str):
     pass
