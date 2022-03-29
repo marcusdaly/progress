@@ -35,10 +35,9 @@ def create_practice(session_type: str, plan: str, activity: str, date: str):
         # new exerscise!
         if not line.startswith("\t"):
             # if valid, save current exercise
+            current_exercise = {"Name": line[2:-1].strip()}
             if "Name" in current_exercise:
                 exercises.append(current_exercise)
-
-            current_exercise = {"Name": line[2:-1].strip()}
         else:
             key = line.split(":")[0][3:].strip()
             val = ":".join(line.split(":")[1:]).strip()
