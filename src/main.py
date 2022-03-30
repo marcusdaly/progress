@@ -10,6 +10,7 @@ from commands.cli_commands import (
     handle_config_cli_command,
     handle_plan_cli_command,
     handle_practice_cli_command,
+    handle_session_cli_command,
     handle_skill_cli_command,
 )
 
@@ -25,14 +26,19 @@ if __name__ == "__main__":
     parser_activity = subparsers.add_parser("activity", help="manage activities")
     parser_skill = subparsers.add_parser("skill", help="manage skills")
     parser_plan = subparsers.add_parser("plan", help="manage plans")
+    parser_session = subparsers.add_parser("session", help="manage sessions")
     parser_practice = subparsers.add_parser("practice", help="manage practices")
 
-    # config
+    """
+    Config
+    """
     parser_config.add_argument(
         "--directory", required=True, help="the directory of the activities vault"
     )
 
-    # activity
+    """
+    Activity
+    """
     subparsers_activity = parser_activity.add_subparsers(
         title="subcommands", dest="subcommand", required=True
     )
@@ -89,14 +95,19 @@ if __name__ == "__main__":
         "--name", required=True, help="the name of the skill to get info on"
     )
 
-    # plan
+    """
+    Plan
+    """
     subparsers_plan = parser_plan.add_subparsers(
         title="subcommands", dest="subcommand", required=True
     )
     parser_plan_create = subparsers_plan.add_parser("create", help="create a new plan")
-    parser_plan_ls = subparsers_plan.add_parser("ls", help="list all activities")
+    parser_plan_ls = subparsers_plan.add_parser("ls", help="list all plans")
     parser_plan_info = subparsers_plan.add_parser(
         "info", help="get more info on a specific plan"
+    )
+    parser_plan_schedule = subparsers_plan.add_parser(
+        "schedule", help="schedule practices according to the plan"
     )
 
     # plan create
@@ -117,7 +128,62 @@ if __name__ == "__main__":
         "--name", required=True, help="the name of the plan to get info on"
     )
 
-    # practice
+    # plan schedule
+    parser_plan_schedule.add_argument(
+        "--name", required=True, help="the name of the plan to schedule"
+    )
+    parser_plan_schedule.add_argument(
+        "--activity", required=True, help="the activity this plan is associated with"
+    )
+    parser_plan_schedule.add_argument(
+        "--until",
+        required=True,
+        help="the final date this plan should be scheduled for",
+    )
+
+    """
+    Session
+    """
+    subparsers_session = parser_session.add_subparsers(
+        title="subcommands", dest="subcommand", required=True
+    )
+    parser_session_create = subparsers_session.add_parser(
+        "create", help="create a new session"
+    )
+    parser_session_ls = subparsers_session.add_parser("ls", help="list all sessions")
+    parser_session_info = subparsers_session.add_parser(
+        "info", help="get more info on a specific session"
+    )
+
+    # session create
+    parser_session_create.add_argument(
+        "--name", required=True, help="the name of the new session"
+    )
+    parser_session_create.add_argument(
+        "--plan", required=True, help="the plan this session is linked to"
+    )
+    parser_session_create.add_argument(
+        "--activity", required=True, help="the activity this session is associated with"
+    )
+
+    # session ls
+    parser_session_ls.add_argument(
+        "--activity",
+        required=True,
+        help="the activity the desired sessions are associated with",
+    )
+    parser_session_ls.add_argument(
+        "--plan", required=True, help="the plan to find sessions under"
+    )
+
+    # session info
+    parser_session_info.add_argument(
+        "--name", required=True, help="the name of the session to get info on"
+    )
+
+    """
+    Practice
+    """
     subparsers_practice = parser_practice.add_subparsers(
         title="subcommands", dest="subcommand", required=True
     )
@@ -161,8 +227,8 @@ if __name__ == "__main__":
         "activity": handle_activity_cli_command,
         "skill": handle_skill_cli_command,
         "plan": handle_plan_cli_command,
+        "session": handle_session_cli_command,
         "practice": handle_practice_cli_command,
     }
 
-    if args.command in simple_args_commands:
-        simple_args_commands[args.command](args)
+    simple_args_commands[args.command](args)

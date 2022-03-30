@@ -11,9 +11,13 @@ from commands.commands import (
     handle_plan_create_command,
     handle_plan_info_command,
     handle_plan_ls_command,
+    handle_plan_schedule_command,
     handle_practice_create_command,
     handle_practice_info_command,
     handle_practice_ls_command,
+    handle_session_create_command,
+    handle_session_info_command,
+    handle_session_ls_command,
     handle_skill_create_command,
     handle_skill_info_command,
     handle_skill_ls_command,
@@ -92,6 +96,7 @@ def handle_plan_cli_command(args: Namespace):
         "create": _handle_plan_create_cli_command,
         "ls": _handle_plan_ls_cli_command,
         "info": _handle_plan_info_cli_command,
+        "schedule": _handle_plan_schedule_cli_command,
     }
 
     subcommands[args.subcommand](args)
@@ -107,6 +112,41 @@ def _handle_plan_ls_cli_command(args: Namespace):
 
 def _handle_plan_info_cli_command(args: Namespace):
     handle_plan_info_command(plan=args.name)
+
+
+def _handle_plan_schedule_cli_command(args: Namespace):
+    handle_plan_schedule_command(
+        until=args.until, plan=args.name, activity=args.activity
+    )
+
+
+"""
+Session Commands
+"""
+
+
+def handle_session_cli_command(args: Namespace):
+    subcommands = {
+        "create": _handle_session_create_cli_command,
+        "ls": _handle_session_ls_cli_command,
+        "info": _handle_session_info_cli_command,
+    }
+
+    subcommands[args.subcommand](args)
+
+
+def _handle_session_create_cli_command(args: Namespace):
+    handle_session_create_command(
+        session_type=args.name, plan=args.plan, activity=args.activity
+    )
+
+
+def _handle_session_ls_cli_command(args: Namespace):
+    handle_session_ls_command(plan=args.plan, activity=args.activity)
+
+
+def _handle_session_info_cli_command(args: Namespace):
+    handle_session_info_command(session=args.name)
 
 
 """

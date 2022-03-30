@@ -2,12 +2,7 @@ import os
 from typing import List
 
 from config import get_activity_vault
-
-
-def get_activity_dir(activity: str):
-    activity_vault = get_activity_vault()
-    activity_dir = os.path.join(activity_vault, activity)
-    return activity_dir
+from dir_utils import get_activity_dir
 
 
 def create_activity(name: str):

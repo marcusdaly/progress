@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from activity import get_activity_dir
 from plan import get_plan_dir
@@ -10,7 +11,13 @@ def get_practice_dir(activity: str) -> str:
     return practice_dir
 
 
-def create_practice(session_type: str, plan: str, activity: str, date: str):
+def create_practice(
+    session_type: str,
+    plan: str,
+    activity: str,
+    date: str,
+    practice_name: Optional[str] = None,
+):
     plan_dir = get_plan_dir(plan=plan, activity=activity)
 
     session_path = os.path.join(plan_dir, session_type + ".md")
@@ -21,9 +28,11 @@ def create_practice(session_type: str, plan: str, activity: str, date: str):
     if not os.path.isdir(practice_dir):
         os.mkdir(practice_dir)
 
-    practice_name = " ".join([date, plan, "-", session_type]) + ".md"
-    if os.path.isfile(os.path.join(practice_dir, practice_name)):
-        raise ValueError(practice_name)
+    if practice_name is None:
+        practice_name = " ".join([date, plan, "-", session_type])
+    practice_path = practice_name + ".md"
+    if os.path.isfile(os.path.join(practice_dir, practice_path)):
+        raise ValueError(practice_path)
 
     # extract exercises from session plan
     with open(session_path, "r") as file:
@@ -43,7 +52,7 @@ def create_practice(session_type: str, plan: str, activity: str, date: str):
             val = ":".join(line.split(":")[1:]).strip()
             current_exercise[key] = val
 
-    with open(os.path.join(practice_dir, practice_name), "w") as file:
+    with open(os.path.join(practice_dir, practice_path), "w") as file:
         file.write(f"# {session_type}\n")
         file.write("### HH:MM - HH:MM\n")
 
