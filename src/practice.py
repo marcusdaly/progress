@@ -17,6 +17,7 @@ def create_practice(
     activity: str,
     date: str,
     practice_name: Optional[str] = None,
+    error_if_exists: bool = True,
 ):
     plan_dir = get_plan_dir(plan=plan, activity=activity)
 
@@ -31,8 +32,13 @@ def create_practice(
     if practice_name is None:
         practice_name = " ".join([date, plan, "-", session_type])
     practice_path = practice_name + ".md"
+
     if os.path.isfile(os.path.join(practice_dir, practice_path)):
-        raise ValueError(practice_path)
+        if error_if_exists:
+            raise ValueError(practice_path)
+        else:
+            # just skip creating the practice.
+            return
 
     # extract exercises from session plan
     with open(session_path, "r") as file:

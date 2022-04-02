@@ -90,6 +90,10 @@ def schedule(until: str, plan: str, activity: str):
             times = line[3:-1]
             current_dow_sessions[-1]["Times"] = times
 
+    # for last day, still may need to add the sessions.
+    if len(current_dow_sessions) > 0:
+        dow_sessions[dow_index] = current_dow_sessions
+
     while until_date > date:
         date_str = date.strftime("%Y-%m-%d")
         dow_index = date.weekday()
@@ -131,6 +135,7 @@ def schedule(until: str, plan: str, activity: str):
                 activity=activity,
                 date=date_str,
                 practice_name=session_name,
+                error_if_exists=False,
             )
 
         date = date + datetime.timedelta(days=1)
