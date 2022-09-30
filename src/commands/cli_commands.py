@@ -8,10 +8,13 @@ from commands.commands import (
     handle_activity_info_command,
     handle_activity_ls_command,
     handle_config_command,
+    handle_exercise_info_command,
+    handle_exercise_ls_command,
     handle_plan_create_command,
     handle_plan_info_command,
     handle_plan_ls_command,
     handle_plan_schedule_command,
+    handle_plan_visualize_command,
     handle_practice_create_command,
     handle_practice_info_command,
     handle_practice_ls_command,
@@ -97,6 +100,7 @@ def handle_plan_cli_command(args: Namespace):
         "ls": _handle_plan_ls_cli_command,
         "info": _handle_plan_info_cli_command,
         "schedule": _handle_plan_schedule_cli_command,
+        "visualize": _handle_plan_visualize_command,
     }
 
     subcommands[args.subcommand](args)
@@ -118,6 +122,10 @@ def _handle_plan_schedule_cli_command(args: Namespace):
     handle_plan_schedule_command(
         until=args.until, plan=args.name, activity=args.activity
     )
+
+
+def _handle_plan_visualize_command(args: Namespace):
+    handle_plan_visualize_command(plan=args.plan, activity=args.activity)
 
 
 """
@@ -179,3 +187,25 @@ def _handle_practice_ls_cli_command(args: Namespace):
 
 def _handle_practice_info_cli_command(args: Namespace):
     handle_practice_info_command(practice=args.name)
+
+
+"""
+Exercise Commands
+"""
+
+
+def handle_exercise_cli_command(args: Namespace):
+    subcommands = {
+        "ls": _handle_exercise_ls_cli_command,
+        "info": _handle_exercise_info_cli_command,
+    }
+
+    subcommands[args.subcommand](args)
+
+
+def _handle_exercise_ls_cli_command(args: Namespace):
+    handle_exercise_ls_command(activity=args.activity)
+
+
+def _handle_exercise_info_cli_command(args: Namespace):
+    handle_exercise_info_command(activity=args.activity, exercise=args.name)

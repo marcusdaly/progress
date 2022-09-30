@@ -2,13 +2,8 @@ import os
 from typing import Optional
 
 from activity import get_activity_dir
+from dir_utils import get_practices_dir
 from plan import get_plan_dir
-
-
-def get_practice_dir(activity: str) -> str:
-    activity_dir = get_activity_dir(activity)
-    practice_dir = os.path.join(activity_dir, "Practice")
-    return practice_dir
 
 
 def create_practice(
@@ -25,7 +20,7 @@ def create_practice(
     if not os.path.isfile(session_path):
         raise ValueError(session_path)
 
-    practice_dir = get_practice_dir(activity=activity)
+    practice_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practice_dir):
         os.mkdir(practice_dir)
 

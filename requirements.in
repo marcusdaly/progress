@@ -1,4 +1,4 @@
-pip-tools
+pip-tools>=6.8.0
 black
 flake8
 safety
@@ -7,3 +7,8 @@ isort
 pylint
 pre-commit
 configurator[yaml]
+matplotlib
+numpy
+seaborn
+pandas
+statsmodels

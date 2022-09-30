@@ -28,3 +28,9 @@ def get_plan_dir(plan: str, activity: str, date: Optional[str] = None) -> str:
     plan = " ".join([date, plan])
     plan_dir = os.path.join(plans_dir, plan)
     return plan_dir
+
+
+def get_practices_dir(activity: str) -> str:
+    activity_dir = get_activity_dir(activity)
+    practices_dir = os.path.join(activity_dir, "Practice")
+    return practices_dir
