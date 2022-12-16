@@ -257,6 +257,9 @@ if __name__ == "__main__":
     parser_exercise_info.add_argument(
         "--name", required=True, help="the name of the exercise to get info on"
     )
+    parser_exercise_info.add_argument(
+        "--start", required=False, help="the starting date to analyze, as YYYY-MM-DD"
+    )
 
     args = parser.parse_args()
 

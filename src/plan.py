@@ -191,6 +191,26 @@ def _measurement_to_metric(measurement: str) -> str:
         or lower_measurement.endswith("seconds")
     ):
         return "Seconds"
+
+    if (
+        lower_measurement.endswith("hour")
+        or lower_measurement.endswith("hours")
+        or lower_measurement.endswith("hr")
+        or lower_measurement.endswith("hrs")
+        or lower_measurement.endswith("h")
+        or lower_measurement.endswith("hs")
+    ):
+        return "Hours"
+
+    if (
+        lower_measurement.endswith("minute")
+        or lower_measurement.endswith("minutes")
+        or lower_measurement.endswith("min")
+        or lower_measurement.endswith("mins")
+        or lower_measurement.endswith("m")
+        or lower_measurement.endswith("ms")
+    ):
+        return "Minutes"
     if lower_measurement == "[x]" or lower_measurement == "[ ]":
         return "Completion"
     if lower_measurement.endswith("planks"):

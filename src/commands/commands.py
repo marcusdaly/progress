@@ -128,6 +128,6 @@ def handle_exercise_ls_command(activity: str):
     print(f"{activity} Exercises:\n\t" + "\n\t".join(exercises))
 
 
-def handle_exercise_info_command(exercise: str, activity: str):
-    exercise_results = get_exercise(activity=activity, exercise=exercise)
+def handle_exercise_info_command(exercise: str, activity: str, start: str):
+    exercise_results = get_exercise(activity=activity, exercise=exercise, start=start)
     print(exercise_results)

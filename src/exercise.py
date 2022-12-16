@@ -114,7 +114,9 @@ def get_exercises(activity: str,) -> List[str]:
     return list(set(all_session_exercises))
 
 
-def get_exercise(activity: str, exercise: str):
+def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
+    if start is not None:
+        start = datetime.strptime(start, "%Y-%m-%d")
     practices_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practices_dir):
         raise ValueError(practices_dir)
@@ -146,9 +148,26 @@ def get_exercise(activity: str, exercise: str):
             (date, exercise_metrics[metric])
             for date, exercise_metrics in zip(session_dates, all_session_exercises)
         ]
+
+        # filter by date
+        if start is not None:
+            date_and_measurements = [
+                (date, measurement)
+                for date, measurement in date_and_measurements
+                if date >= start
+            ]
+
         # take just first for now
         date_and_measurements = [
-            (date, float(_filter_non_digits(measurement[0])))
+            (
+                date,
+                max(
+                    [
+                        float(_filter_non_digits(set_measurement))
+                        for set_measurement in measurement
+                    ]
+                ),
+            )
             if len(measurement) > 0
             else (date, np.nan)
             for date, measurement in date_and_measurements
@@ -169,6 +188,10 @@ def get_exercise(activity: str, exercise: str):
         notnan_indices = np.argwhere(~np.isnan(y))
         y = y[notnan_indices]
         x = x[notnan_indices]
+        if y.shape[0] == 0:
+            print("skipping", metric)
+            continue
+        print(x, y)
         model = sm.OLS(y, sm.add_constant(x))
         result = model.fit()
         print(result.summary())

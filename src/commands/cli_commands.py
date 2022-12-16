@@ -208,4 +208,6 @@ def _handle_exercise_ls_cli_command(args: Namespace):
 
 
 def _handle_exercise_info_cli_command(args: Namespace):
-    handle_exercise_info_command(activity=args.activity, exercise=args.name)
+    handle_exercise_info_command(
+        activity=args.activity, exercise=args.name, start=args.start
+    )
