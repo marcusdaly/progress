@@ -157,65 +157,36 @@ def get_plans(activity: str) -> List[str]:
 
 
 def _measurement_to_metric(measurement: str) -> str:
-    lower_measurement = measurement.lower().strip()
+    lower_measurement = _filter_digits(measurement.lower()).strip()
 
-    if lower_measurement.endswith("lbs") or lower_measurement.endswith("lb"):
+    if lower_measurement in ["lbs", "lb"]:
         return "Weight"
     if (
-        lower_measurement.endswith("lbs r")
-        or lower_measurement.endswith("lbs right")
-        or lower_measurement.endswith("lb r")
-        or lower_measurement.endswith("lb right")
+        lower_measurement in ["lbs r", "lbs right", "lb r", "lb right"]
     ):
         return "Weight Right"
     if (
-        lower_measurement.endswith("lbs l")
-        or lower_measurement.endswith("lbs left")
-        or lower_measurement.endswith("lb l")
-        or lower_measurement.endswith("lb left")
+        lower_measurement in ["lbs l", "lbs left", "lb l", "lb left"]
     ):
         return "Weight Left"
-    if lower_measurement.endswith("r") or lower_measurement.endswith(
-        "right"
-    ):  # TODO may be seconds
+    if lower_measurement in ["r", "right"]:  # TODO may be seconds
         return "Reps Right"
-    if lower_measurement.endswith("l") or lower_measurement.endswith(
-        "left"
-    ):  # TODO may be seconds
+    if lower_measurement in ["l", "left"]:  # TODO may be seconds
         return "Reps Left"
-    if (
-        lower_measurement.endswith("s")
-        or lower_measurement.endswith("sec")
-        or lower_measurement.endswith("secs")
-        or lower_measurement.endswith("second")
-        or lower_measurement.endswith("seconds")
-    ):
-        return "Seconds"
 
-    if (
-        lower_measurement.endswith("hour")
-        or lower_measurement.endswith("hours")
-        or lower_measurement.endswith("hr")
-        or lower_measurement.endswith("hrs")
-        or lower_measurement.endswith("h")
-        or lower_measurement.endswith("hs")
-    ):
+    if lower_measurement  in ["hour", "hours", "hr", "hrs", "h", "hs"]:
         return "Hours"
 
-    if (
-        lower_measurement.endswith("minute")
-        or lower_measurement.endswith("minutes")
-        or lower_measurement.endswith("min")
-        or lower_measurement.endswith("mins")
-        or lower_measurement.endswith("m")
-        or lower_measurement.endswith("ms")
-    ):
+    if lower_measurement in ["minute", "minutes", "min", "mins", "m", "ms"]:
         return "Minutes"
+    # TODO better way of doing this than .endswith
+    if lower_measurement in ["s", "sec", "secs", "second", "seconds"]:
+        return "Seconds"
     if lower_measurement == "[x]" or lower_measurement == "[ ]":
         return "Completion"
-    if lower_measurement.endswith("planks"):
+    if lower_measurement == "planks":
         return "Distance"
-    if lower_measurement.strip().isdigit():
+    if lower_measurement == "":
         return "Reps"
     return "Variation"
 
@@ -224,6 +195,13 @@ def _filter_non_digits(string: str) -> str:
     result = ""
     for char in string:
         if char in "1234567890.":
+            result += char
+    return result
+
+def _filter_digits(string: str) -> str:
+    result = ""
+    for char in string:
+        if char not in "1234567890.":
             result += char
     return result
 

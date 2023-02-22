@@ -89,7 +89,16 @@ def _get_exercise_results_from_file(
             set_metrics = [
                 _measurement_to_metric(measurement) for measurement in set_measurements
             ]
+                
             for metric, measurement in zip(set_metrics, set_measurements):
+                if "Hours" == metric and "Minutes" in set_metrics:
+                    measurement_val = _filter_non_digits(measurement)
+                    new_measurement_val = float(measurement_val) + int(_filter_non_digits(set_measurements[set_metrics.index("Minutes")])) / 60
+                    measurement = f"{new_measurement_val}{measurement.removeprefix(measurement_val)}"
+                
+                if "Minutes" == metric and "Hours" in set_metrics:
+                    continue
+
                 if metric in exercise_results:
                     exercise_results[metric].append(measurement)
 
@@ -158,6 +167,7 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
             ]
 
         # take just first for now
+        print(date_and_measurements)
         date_and_measurements = [
             (
                 date,
@@ -168,7 +178,7 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
                     ]
                 ),
             )
-            if len(measurement) > 0
+            if len(measurement) > 0 and any(len(m) > 0 for m in measurement)
             else (date, np.nan)
             for date, measurement in date_and_measurements
         ]
