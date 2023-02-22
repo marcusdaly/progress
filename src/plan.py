@@ -161,20 +161,16 @@ def _measurement_to_metric(measurement: str) -> str:
 
     if lower_measurement in ["lbs", "lb"]:
         return "Weight"
-    if (
-        lower_measurement in ["lbs r", "lbs right", "lb r", "lb right"]
-    ):
+    if lower_measurement in ["lbs r", "lbs right", "lb r", "lb right"]:
         return "Weight Right"
-    if (
-        lower_measurement in ["lbs l", "lbs left", "lb l", "lb left"]
-    ):
+    if lower_measurement in ["lbs l", "lbs left", "lb l", "lb left"]:
         return "Weight Left"
     if lower_measurement in ["r", "right"]:  # TODO may be seconds
         return "Reps Right"
     if lower_measurement in ["l", "left"]:  # TODO may be seconds
         return "Reps Left"
 
-    if lower_measurement  in ["hour", "hours", "hr", "hrs", "h", "hs"]:
+    if lower_measurement in ["hour", "hours", "hr", "hrs", "h", "hs"]:
         return "Hours"
 
     if lower_measurement in ["minute", "minutes", "min", "mins", "m", "ms"]:
@@ -197,6 +193,7 @@ def _filter_non_digits(string: str) -> str:
         if char in "1234567890.":
             result += char
     return result
+
 
 def _filter_digits(string: str) -> str:
     result = ""
@@ -225,72 +222,77 @@ def visualize_plan(plan: str, activity: str):
 
     sessions = {session_name: [] for session_name in session_names}
 
-    practice_dir = get_practices_dir(activity=activity)
-    for practice_name in [file[:-3] for file in os.listdir(practice_dir)]:
-        split_practice_name = practice_name.split(" ")
-        date = split_practice_name[0]
-        plan_name = split_practice_name[1]
-        session_name = " ".join(split_practice_name[3:])
+    practices_dir = get_practices_dir(activity=activity)
 
-        with open(os.path.join(practice_dir, practice_name + ".md"), "r") as file:
-            # extract exercises from practice
-            practice_lines = file.readlines()
+    for practice_path, _, files in os.walk(practices_dir):
+        for file in files:
+            practice_name = file[:-3]
+            split_practice_name = practice_name.split(" ")
+            date = split_practice_name[0]
+            plan_name = split_practice_name[1]
+            session_name = " ".join(split_practice_name[3:])
 
-        sessions[session_name].append({})
-        sessions[session_name][-1]["date"] = date
+            with open(os.path.join(practice_path, practice_name + ".md"), "r") as file:
+                # extract exercises from practice
+                practice_lines = file.readlines()
 
-        if datetime.datetime.strptime(date, "%Y-%m-%d") > datetime.datetime.now():
-            continue
+            sessions[session_name].append({})
+            sessions[session_name][-1]["date"] = date
 
-        metrics = None
+            if datetime.datetime.strptime(date, "%Y-%m-%d") > datetime.datetime.now():
+                continue
 
-        for line in practice_lines:
-            if line.startswith("## Notes"):
-                break
-            if line.startswith("# "):
-                skipped = "skipped" in line.lower()
-                sessions[session_name][-1]["skipped"] = skipped
-                if skipped:
+            metrics = None
+
+            for line in practice_lines:
+                if line.startswith("## Notes"):
                     break
+                if line.startswith("# "):
+                    skipped = "skipped" in line.lower()
+                    sessions[session_name][-1]["skipped"] = skipped
+                    if skipped:
+                        break
 
-                assert line[2:-1] == session_name, f"{line[2:-1]} != {session_name}"
+                    assert line[2:-1] == session_name, f"{line[2:-1]} != {session_name}"
 
-            elif line.startswith("- "):
-                completion_false = line.startswith("- [ ] ")
-                completion_true = line.startswith("- [x] ")
-                exercise_name = (
-                    line[6:-1] if completion_false or completion_true else line[2:-1]
-                )
-                sessions[session_name][-1][exercise_name] = {}
-                if completion_false:
-                    sessions[session_name][-1][exercise_name]["completed"] = False
-                if completion_true:
-                    sessions[session_name][-1][exercise_name]["completed"] = True
+                elif line.startswith("- "):
+                    completion_false = line.startswith("- [ ] ")
+                    completion_true = line.startswith("- [x] ")
+                    exercise_name = (
+                        line[6:-1]
+                        if completion_false or completion_true
+                        else line[2:-1]
+                    )
+                    sessions[session_name][-1][exercise_name] = {}
+                    if completion_false:
+                        sessions[session_name][-1][exercise_name]["completed"] = False
+                    if completion_true:
+                        sessions[session_name][-1][exercise_name]["completed"] = True
 
-            elif line.startswith("\t- "):
-                if line[3:].startswith("Metric: "):
-                    metrics = [metric.strip() for metric in line[11:].split("|")]
-                    if "completed" not in sessions[session_name][-1][exercise_name]:
-                        for metric in metrics:
-                            sessions[session_name][-1][exercise_name][metric] = []
+                elif line.startswith("\t- "):
+                    if line[3:].startswith("Metric: "):
+                        metrics = [metric.strip() for metric in line[11:].split("|")]
+                        if "completed" not in sessions[session_name][-1][exercise_name]:
+                            for metric in metrics:
+                                sessions[session_name][-1][exercise_name][metric] = []
 
-            elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
-                set_num = int(line[1])
-                set_measurements = [
-                    measurement.strip() for measurement in line[3:].split(",")
-                ]
-                set_metrics = [
-                    _measurement_to_metric(measurement)
-                    for measurement in set_measurements
-                ]
-                for metric, measurement in zip(set_metrics, set_measurements):
-                    if metric in sessions[session_name][-1][exercise_name]:
-                        sessions[session_name][-1][exercise_name][metric].append(
-                            measurement
-                        )
+                elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
+                    set_num = int(line[1])
+                    set_measurements = [
+                        measurement.strip() for measurement in line[3:].split(",")
+                    ]
+                    set_metrics = [
+                        _measurement_to_metric(measurement)
+                        for measurement in set_measurements
+                    ]
+                    for metric, measurement in zip(set_metrics, set_measurements):
+                        if metric in sessions[session_name][-1][exercise_name]:
+                            sessions[session_name][-1][exercise_name][metric].append(
+                                measurement
+                            )
 
-                # if metrics is not None:
-                #     print(set_num, set_measurements, metrics)
+                    # if metrics is not None:
+                    #     print(set_num, set_measurements, metrics)
 
     # print(sessions[session_name])
 

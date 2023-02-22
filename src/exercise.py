@@ -39,8 +39,8 @@ def _get_exercise_results_from_file(
     session_dir: str, exercise_name: str
 ) -> Tuple[datetime, dict]:
     found_exercise = False
-    session_name = session_dir.split("/")[-1][:-3].split("-")[-1].strip()
-    session_date_str = session_dir.split("/")[-1][:10]
+    session_name = os.path.split(session_dir)[-1][:-3].split("-")[-1].strip()
+    session_date_str = os.path.split(session_dir)[-1][:10]
     session_date = datetime.strptime(session_date_str, "%Y-%m-%d")
     exercise_results = {}
     with open(session_dir, "r") as file:
@@ -89,13 +89,21 @@ def _get_exercise_results_from_file(
             set_metrics = [
                 _measurement_to_metric(measurement) for measurement in set_measurements
             ]
-                
+
             for metric, measurement in zip(set_metrics, set_measurements):
                 if "Hours" == metric and "Minutes" in set_metrics:
                     measurement_val = _filter_non_digits(measurement)
-                    new_measurement_val = float(measurement_val) + int(_filter_non_digits(set_measurements[set_metrics.index("Minutes")])) / 60
+                    new_measurement_val = (
+                        float(measurement_val)
+                        + int(
+                            _filter_non_digits(
+                                set_measurements[set_metrics.index("Minutes")]
+                            )
+                        )
+                        / 60
+                    )
                     measurement = f"{new_measurement_val}{measurement.removeprefix(measurement_val)}"
-                
+
                 if "Minutes" == metric and "Hours" in set_metrics:
                     continue
 
@@ -113,12 +121,13 @@ def get_exercises(activity: str,) -> List[str]:
         raise ValueError(practices_dir)
 
     all_session_exercises = []
-    for session in os.listdir(practices_dir):
-        session_dir = f"{practices_dir}/{session}"
-        # extract exercises from session plan
-        print(session)
-        session_exercises = _get_exercises_from_file(session_dir)
-        all_session_exercises.extend(session_exercises)
+    for session_path, _, files in os.walk(practices_dir):
+        for session in files:
+            session_dir = os.path.join(session_path, session)
+            # extract exercises from session plan
+            print(session)
+            session_exercises = _get_exercises_from_file(session_dir)
+            all_session_exercises.extend(session_exercises)
 
     return list(set(all_session_exercises))
 
@@ -132,15 +141,17 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
 
     all_session_exercises = []
     session_dates = []
-    for session in os.listdir(practices_dir):
-        session_dir = f"{practices_dir}/{session}"
-        # extract exercises from session plan
-        session_date, session_exercises = _get_exercise_results_from_file(
-            session_dir, exercise_name=exercise
-        )
-        if len(session_exercises) > 0:
-            all_session_exercises.append(session_exercises)
-            session_dates.append(session_date)
+    for session_path, _, files in os.walk(practices_dir):
+        for session in files:
+            print(session_path)
+            session_dir = os.path.join(session_path, session)
+            # extract exercises from session plan
+            session_date, session_exercises = _get_exercise_results_from_file(
+                session_dir, exercise_name=exercise
+            )
+            if len(session_exercises) > 0:
+                all_session_exercises.append(session_exercises)
+                session_dates.append(session_date)
     print(all_session_exercises)
     metrics = list(
         set(
