@@ -7,6 +7,15 @@ import numpy as np
 
 from dir_utils import get_activity_dir, get_plan_dir, get_practices_dir
 from practice import create_practice
+from units import (
+    HOURS_UNITS,
+    LEFT_UNITS,
+    MINUTES_UNITS,
+    POUNDS_UNITS,
+    RIGHT_UNITS,
+    SECONDS_UNITS,
+    combine_units,
+)
 
 DOW_TO_INT = {
     "Monday": 0,
@@ -159,24 +168,27 @@ def get_plans(activity: str) -> List[str]:
 def _measurement_to_metric(measurement: str) -> str:
     lower_measurement = _filter_digits(measurement.lower()).strip()
 
-    if lower_measurement in ["lbs", "lb"]:
+    if lower_measurement in POUNDS_UNITS:
         return "Weight"
-    if lower_measurement in ["lbs r", "lbs right", "lb r", "lb right"]:
+    if lower_measurement in combine_units(POUNDS_UNITS, RIGHT_UNITS):
         return "Weight Right"
-    if lower_measurement in ["lbs l", "lbs left", "lb l", "lb left"]:
+    if lower_measurement in combine_units(POUNDS_UNITS, LEFT_UNITS):
         return "Weight Left"
-    if lower_measurement in ["r", "right"]:  # TODO may be seconds
+    if lower_measurement in combine_units(SECONDS_UNITS, RIGHT_UNITS):
+        return "Seconds Right"
+    if lower_measurement in combine_units(SECONDS_UNITS, LEFT_UNITS):
+        return "Seconds Left"
+    if lower_measurement in RIGHT_UNITS:
         return "Reps Right"
-    if lower_measurement in ["l", "left"]:  # TODO may be seconds
+    if lower_measurement in LEFT_UNITS:
         return "Reps Left"
 
-    if lower_measurement in ["hour", "hours", "hr", "hrs", "h", "hs"]:
+    if lower_measurement in HOURS_UNITS:
         return "Hours"
 
-    if lower_measurement in ["minute", "minutes", "min", "mins", "m", "ms"]:
+    if lower_measurement in MINUTES_UNITS:
         return "Minutes"
-    # TODO better way of doing this than .endswith
-    if lower_measurement in ["s", "sec", "secs", "second", "seconds"]:
+    if lower_measurement in SECONDS_UNITS:
         return "Seconds"
     if lower_measurement == "[x]" or lower_measurement == "[ ]":
         return "Completion"
