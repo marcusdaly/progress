@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -139,7 +139,7 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
     if not os.path.isdir(practices_dir):
         raise ValueError(practices_dir)
 
-    all_session_exercises = []
+    all_session_exercises: List[Dict] = []
     session_dates = []
     for session_path, _, files in os.walk(practices_dir):
         for session in files:
@@ -152,7 +152,6 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
             if len(session_exercises) > 0:
                 all_session_exercises.append(session_exercises)
                 session_dates.append(session_date)
-    print(all_session_exercises)
     metrics = list(
         set(
             [
@@ -165,7 +164,7 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
     print(metrics)
     for metric in metrics:
         date_and_measurements = [
-            (date, exercise_metrics[metric])
+            (date, exercise_metrics.get(metric, {}))
             for date, exercise_metrics in zip(session_dates, all_session_exercises)
         ]
 
