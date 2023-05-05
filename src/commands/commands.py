@@ -129,5 +129,4 @@ def handle_exercise_ls_command(activity: str):
 
 
 def handle_exercise_info_command(exercise: str, activity: str, start: str):
-    exercise_results = get_exercise(activity=activity, exercise=exercise, start=start)
-    print(exercise_results)
+    get_exercise(activity=activity, exercise=exercise, start=start)
