@@ -8,6 +8,7 @@ import logging
 from commands.cli_commands import (
     handle_activity_cli_command,
     handle_config_cli_command,
+    handle_exercise_cli_command,
     handle_plan_cli_command,
     handle_practice_cli_command,
     handle_session_cli_command,
@@ -28,6 +29,7 @@ if __name__ == "__main__":
     parser_plan = subparsers.add_parser("plan", help="manage plans")
     parser_session = subparsers.add_parser("session", help="manage sessions")
     parser_practice = subparsers.add_parser("practice", help="manage practices")
+    parser_exercise = subparsers.add_parser("exercise", help="manage exercises")
 
     """
     Config
@@ -109,6 +111,9 @@ if __name__ == "__main__":
     parser_plan_schedule = subparsers_plan.add_parser(
         "schedule", help="schedule practices according to the plan"
     )
+    parser_plan_visualize = subparsers_plan.add_parser(
+        "visualize", help="visualize practices according to the plan"
+    )
 
     # plan create
     parser_plan_create.add_argument(
@@ -139,6 +144,14 @@ if __name__ == "__main__":
         "--until",
         required=True,
         help="the final date this plan should be scheduled for",
+    )
+
+    # plan visualize
+    parser_plan_visualize.add_argument(
+        "--plan", required=True, help="the name of the plan to visualize"
+    )
+    parser_plan_visualize.add_argument(
+        "--activity", required=True, help="the activity this plan is associated with"
     )
 
     """
@@ -217,6 +230,37 @@ if __name__ == "__main__":
         "--name", required=True, help="the name of the practice to get info on"
     )
 
+    """
+    Exercise
+    """
+    subparsers_exercise = parser_exercise.add_subparsers(
+        title="subcommands", dest="subcommand", required=True
+    )
+    parser_exercise_ls = subparsers_exercise.add_parser("ls", help="list all exercises")
+    parser_exercise_info = subparsers_exercise.add_parser(
+        "info", help="get more info on a specific exercise"
+    )
+
+    # exercise ls
+    parser_exercise_ls.add_argument(
+        "--activity",
+        required=True,
+        help="the activity the desired exercises are associated with",
+    )
+
+    # exercise info
+    parser_exercise_info.add_argument(
+        "--activity",
+        required=True,
+        help="the activity the desired exercise is associated with",
+    )
+    parser_exercise_info.add_argument(
+        "--name", required=True, help="the name of the exercise to get info on"
+    )
+    parser_exercise_info.add_argument(
+        "--start", required=False, help="the starting date to analyze, as YYYY-MM-DD"
+    )
+
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -229,6 +273,7 @@ if __name__ == "__main__":
         "plan": handle_plan_cli_command,
         "session": handle_session_cli_command,
         "practice": handle_practice_cli_command,
+        "exercise": handle_exercise_cli_command,
     }
 
     simple_args_commands[args.command](args)

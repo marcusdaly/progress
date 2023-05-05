@@ -5,11 +5,11 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: 22.3.0
     hooks:
     -   id: black
--   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.9
+-   repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
     hooks:
     - id: flake8
 -   repo: https://github.com/asottile/seed-isort-config
@@ -18,6 +18,6 @@ repos:
     - id: seed-isort-config
       entry: "seed-isort-config --application-directories src:tests"
 -   repo: https://github.com/pycqa/isort
-    rev: 5.5.2
+    rev: 5.12.0
     hooks:
     - id: isort

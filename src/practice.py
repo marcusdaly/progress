@@ -1,14 +1,8 @@
 import os
 from typing import Optional
 
-from activity import get_activity_dir
+from dir_utils import get_practices_dir
 from plan import get_plan_dir
-
-
-def get_practice_dir(activity: str) -> str:
-    activity_dir = get_activity_dir(activity)
-    practice_dir = os.path.join(activity_dir, "Practice")
-    return practice_dir
 
 
 def create_practice(
@@ -25,15 +19,27 @@ def create_practice(
     if not os.path.isfile(session_path):
         raise ValueError(session_path)
 
-    practice_dir = get_practice_dir(activity=activity)
+    practice_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practice_dir):
         os.mkdir(practice_dir)
 
+    practice_year, practice_month, _ = date.split("-")
+    year_dir = os.path.join(practice_dir, practice_year)
+    if not os.path.isdir(year_dir):
+        os.mkdir(year_dir)
+
+    month_dir = os.path.join(
+        practice_dir, practice_year, f"{practice_year}-{practice_month}"
+    )
+    if not os.path.isdir(month_dir):
+        os.mkdir(month_dir)
+
     if practice_name is None:
         practice_name = " ".join([date, plan, "-", session_type])
-    practice_path = practice_name + ".md"
+    practice_filename = practice_name + ".md"
 
-    if os.path.isfile(os.path.join(practice_dir, practice_path)):
+    practice_path = os.path.join(month_dir, practice_filename)
+    if os.path.isfile(practice_path):
         if error_if_exists:
             raise ValueError(practice_path)
         else:
@@ -47,7 +53,7 @@ def create_practice(
     exercises = []
     current_exercise = {}
     for line in lines[1:]:
-        # new exerscise!
+        # new exercise!
         if not line.startswith("\t"):
             # if valid, save current exercise
             current_exercise = {"Name": line[2:-1].strip()}

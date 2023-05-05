@@ -27,5 +27,5 @@ def get_skills(activity: str) -> List[str]:
     return skills
 
 
-def get_skill(name: str):
+def visualize_skill(skill: str):
     pass

@@ -3,7 +3,8 @@ Main functionality of the app.
 """
 from activity import create_activity, get_activities, get_activity
 from config import create_config
-from plan import create_plan, get_plans, schedule
+from exercise import get_exercise, get_exercises
+from plan import create_plan, get_plans, schedule, visualize_plan
 from practice import create_practice
 from session import create_session, get_sessions
 from skill import create_skill, get_skills
@@ -76,6 +77,10 @@ def handle_plan_schedule_command(until: str, plan: str, activity: str):
     schedule(until=until, plan=plan, activity=activity)
 
 
+def handle_plan_visualize_command(plan: str, activity: str):
+    visualize_plan(plan, activity)
+
+
 """
 Session
 """
@@ -111,3 +116,18 @@ def handle_practice_ls_command(activity: str):
 
 def handle_practice_info_command(practice: str, activity: str):
     pass
+
+
+"""
+Exercise
+"""
+
+
+def handle_exercise_ls_command(activity: str):
+    exercises = get_exercises(activity=activity)
+    print(f"{activity} Exercises:\n\t" + "\n\t".join(exercises))
+
+
+def handle_exercise_info_command(exercise: str, activity: str, start: str):
+    exercise_results = get_exercise(activity=activity, exercise=exercise, start=start)
+    print(exercise_results)
