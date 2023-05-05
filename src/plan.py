@@ -224,9 +224,6 @@ def visualize_plan(plan: str, activity: str):
     if not os.path.isfile(schedule_path):
         raise ValueError(schedule_path)
 
-    with open(schedule_path, "r") as file:
-        lines = file.readlines()
-
     # TODO get all of the sessions associated with this plan
     session_names = [
         file[:-3] for file in os.listdir(plan_dir) if file != schedule_name
@@ -241,7 +238,6 @@ def visualize_plan(plan: str, activity: str):
             practice_name = file[:-3]
             split_practice_name = practice_name.split(" ")
             date = split_practice_name[0]
-            plan_name = split_practice_name[1]
             session_name = " ".join(split_practice_name[3:])
 
             with open(os.path.join(practice_path, practice_name + ".md"), "r") as file:
@@ -289,7 +285,6 @@ def visualize_plan(plan: str, activity: str):
                                 sessions[session_name][-1][exercise_name][metric] = []
 
                 elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
-                    set_num = int(line[1])
                     set_measurements = [
                         measurement.strip() for measurement in line[3:].split(",")
                     ]

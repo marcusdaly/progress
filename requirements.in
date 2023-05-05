@@ -1,11 +1,11 @@
 pip-tools>=6.8.0
-black
-flake8
+black==22.3.0
+flake8==4.0.1
 safety
 bandit
-isort
+isort==5.12.0
 pylint
-pre-commit
+pre-commit==3.3.1
 configurator[yaml]
 matplotlib
 numpy

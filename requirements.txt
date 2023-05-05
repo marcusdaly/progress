@@ -8,7 +8,7 @@ astroid==2.11.2
     # via pylint
 bandit==1.7.4
     # via -r requirements.in
-black==22.1.0
+black==22.3.0
     # via -r requirements.in
 build==0.8.0
     # via pip-tools
@@ -47,7 +47,7 @@ identify==2.4.12
     # via pre-commit
 idna==3.3
     # via requests
-isort==5.10.1
+isort==5.12.0
     # via
     #   -r requirements.in
     #   pylint
@@ -105,7 +105,7 @@ platformdirs==2.5.1
     #   black
     #   pylint
     #   virtualenv
-pre-commit==2.17.0
+pre-commit==3.3.1
     # via -r requirements.in
 pycodestyle==2.8.0
     # via flake8
@@ -149,9 +149,7 @@ statsmodels==0.13.2
 stevedore==3.5.0
     # via bandit
 toml==0.10.2
-    # via
-    #   dparse
-    #   pre-commit
+    # via dparse
 tomli==2.0.1
     # via
     #   black

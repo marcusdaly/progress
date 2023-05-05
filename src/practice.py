@@ -1,7 +1,6 @@
 import os
 from typing import Optional
 
-from activity import get_activity_dir
 from dir_utils import get_practices_dir
 from plan import get_plan_dir
 

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from logging import debug
 from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
@@ -8,8 +9,7 @@ import pandas as pd
 import seaborn as sns
 import statsmodels.api as sm
 
-from config import get_activity_vault
-from dir_utils import get_activity_dir, get_practices_dir
+from dir_utils import get_practices_dir
 from plan import _filter_non_digits, _measurement_to_metric
 
 
@@ -39,7 +39,6 @@ def _get_exercise_results_from_file(
     session_dir: str, exercise_name: str
 ) -> Tuple[datetime, dict]:
     found_exercise = False
-    session_name = os.path.split(session_dir)[-1][:-3].split("-")[-1].strip()
     session_date_str = os.path.split(session_dir)[-1][:10]
     session_date = datetime.strptime(session_date_str, "%Y-%m-%d")
     exercise_results = {}
@@ -82,7 +81,6 @@ def _get_exercise_results_from_file(
                         exercise_results[metric] = []
 
         elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
-            set_num = int(line[1])
             set_measurements = [
                 measurement.strip() for measurement in line[3:].split(",")
             ]
@@ -102,7 +100,10 @@ def _get_exercise_results_from_file(
                         )
                         / 60
                     )
-                    measurement = f"{new_measurement_val}{measurement.removeprefix(measurement_val)}"
+                    measurement = (
+                        f"{new_measurement_val}"
+                        f"{measurement.removeprefix(measurement_val)}"
+                    )
 
                 if "Minutes" == metric and "Hours" in set_metrics:
                     continue
@@ -115,7 +116,9 @@ def _get_exercise_results_from_file(
     return session_date, exercise_results
 
 
-def get_exercises(activity: str,) -> List[str]:
+def get_exercises(
+    activity: str,
+) -> List[str]:
     practices_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practices_dir):
         raise ValueError(practices_dir)
@@ -125,7 +128,6 @@ def get_exercises(activity: str,) -> List[str]:
         for session in files:
             session_dir = os.path.join(session_path, session)
             # extract exercises from session plan
-            print(session)
             session_exercises = _get_exercises_from_file(session_dir)
             all_session_exercises.extend(session_exercises)
 
@@ -143,7 +145,6 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
     session_dates = []
     for session_path, _, files in os.walk(practices_dir):
         for session in files:
-            print(session_path)
             session_dir = os.path.join(session_path, session)
             # extract exercises from session plan
             session_date, session_exercises = _get_exercise_results_from_file(
@@ -161,7 +162,6 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
             ]
         )
     )
-    print(metrics)
     for metric in metrics:
         date_and_measurements = [
             (date, exercise_metrics.get(metric, {}))
@@ -177,7 +177,6 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
             ]
 
         # take just first for now
-        print(date_and_measurements)
         date_and_measurements = [
             (
                 date,
@@ -201,7 +200,6 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
                 metric: np.array(measurements),
             }
         )
-        print(measurements)
 
         y = np.array(measurements)
         x = np.arange(len(y))
@@ -209,15 +207,13 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
         y = y[notnan_indices]
         x = x[notnan_indices]
         if y.shape[0] == 0:
-            print("skipping", metric)
+            debug("skipping", metric)
             continue
-        print(x, y)
         model = sm.OLS(y, sm.add_constant(x))
         result = model.fit()
         print(result.summary())
-        # plt.plot(np.arange(len(measurements)), measurements)
-        ax = sns.lmplot(data=data, x="Session", y=metric, height=8, aspect=1.4)
+        sns.lmplot(data=data, x="Session", y=metric, height=8, aspect=1.4)
         plt.show()
-        ax = sns.scatterplot(data=data, x="Date", y=metric)
+        sns.scatterplot(data=data, x="Date", y=metric)
         plt.show()
     return session_exercises
