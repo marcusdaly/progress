@@ -162,6 +162,8 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
             ]
         )
     )
+
+    all_data = {}
     for metric in metrics:
         date_and_measurements = [
             (date, exercise_metrics.get(metric, {}))
@@ -202,18 +204,69 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
         )
 
         y = np.array(measurements)
-        x = np.arange(len(y))
         notnan_indices = np.argwhere(~np.isnan(y))
         y = y[notnan_indices]
-        x = x[notnan_indices]
         if y.shape[0] == 0:
             debug("skipping", metric)
             continue
+
+        all_data[metric] = data
+
+    num_metrics = len(all_data)
+    fig, axs = plt.subplots(nrows=num_metrics, ncols=2, figsize=(20, num_metrics * 3))
+
+    for metric_idx, (metric, data) in enumerate(all_data.items()):
+
+        print(f"Results for {metric}:")
+
+        # Session-wise
+        y = data[metric].to_numpy()
+        x = data["Session"].to_numpy()
+        notnan_indices = np.argwhere(~np.isnan(y)).flatten()
+        y = y[notnan_indices]
+        x = x[notnan_indices]
         model = sm.OLS(y, sm.add_constant(x))
         result = model.fit()
-        print(result.summary())
-        sns.lmplot(data=data, x="Session", y=metric, height=8, aspect=1.4)
-        plt.show()
-        sns.scatterplot(data=data, x="Date", y=metric)
-        plt.show()
+
+        debug(f"{metric} Rates\n")
+        debug(result.summary())
+        metric_per_session = result.params[1]
+        print(f"Increase per Session: {metric_per_session:0.2f}")
+        sns.regplot(data=data, x="Session", y=metric, ax=axs[metric_idx, 0])
+
+        # Week-wise
+        y = data[metric].to_numpy()
+        weeks_from_start = (data["Date"] - data["Date"].iat[0]).dt.days / 7
+        x = weeks_from_start.to_numpy()
+        notnan_indices = np.argwhere(~np.isnan(y)).flatten()
+        y = y[notnan_indices]
+        x = x[notnan_indices]
+        model = sm.OLS(y, sm.add_constant(x))
+        result = model.fit()
+
+        debug(f"{metric} Week-wise\n")
+        debug(result.summary())
+        base_metric = result.params[0]
+        metric_per_week = result.params[1]
+        print(f"Increase per Week: {metric_per_week:0.2f}\n")
+        data = data.iloc[notnan_indices, :]
+
+        sns.scatterplot(data=data, x="Date", y=metric, ax=axs[metric_idx, 1])
+        axs[metric_idx, 1].plot(data["Date"], base_metric + metric_per_week * x)
+
+        # Predictions
+        print(f"{metric} Predictions:")
+        week_4_pred = base_metric + metric_per_week * (x[-1] + 4)
+        print(f"1 Month (4 Weeks): {week_4_pred:0.2f}")
+        week_13_pred = base_metric + metric_per_week * (x[-1] + 13)
+        print(f"1 Season (13 Weeks): {week_13_pred:0.2f}")
+        week_26_pred = base_metric + metric_per_week * (x[-1] + 26)
+        print(f"1/2 Year (26 Weeks): {week_26_pred:0.2f}")
+        week_52_pred = base_metric + metric_per_week * (x[-1] + 52)
+        print(f"1 Year (52 Weeks): {week_52_pred:0.2f}")
+
+        if metric_idx != num_metrics - 1:
+            print("\n")
+    plt.tight_layout()
+    plt.show()
     return session_exercises
