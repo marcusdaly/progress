@@ -215,6 +215,9 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
     num_metrics = len(all_data)
     fig, axs = plt.subplots(nrows=num_metrics, ncols=2, figsize=(20, num_metrics * 3))
 
+    if num_metrics == 1:
+        axs = np.array([axs])
+
     for metric_idx, (metric, data) in enumerate(all_data.items()):
 
         print(f"Results for {metric}:")
