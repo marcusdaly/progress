@@ -3,7 +3,7 @@ Main functionality of the app.
 """
 from activity import create_activity, get_activities, get_activity
 from config import create_config
-from exercise import get_exercise, get_exercises
+from exercise import get_exercise, get_exercises, visualize_exercise_data
 from plan import create_plan, get_plans, schedule, visualize_plan
 from practice import create_practice
 from session import create_session, get_sessions
@@ -129,4 +129,17 @@ def handle_exercise_ls_command(activity: str):
 
 
 def handle_exercise_info_command(exercise: str, activity: str, start: str):
-    get_exercise(activity=activity, exercise=exercise, start=start)
+    all_data = get_exercise(activity=activity, exercise=exercise, start=start)
+    visualize_exercise_data(all_data)
+
+
+def handle_exercise_compare_command(
+    exercise_1: str, activity_1: str, exercise_2: str, activity_2: str, start: str
+):
+    exercise_1_data = get_exercise(
+        activity=activity_1, exercise=exercise_1, start=start
+    )
+    exercise_2_data = get_exercise(
+        activity=activity_2, exercise=exercise_2, start=start
+    )
+    visualize_exercise_data(exercise_1_data | exercise_2_data)

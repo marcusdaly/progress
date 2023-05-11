@@ -134,7 +134,9 @@ def get_exercises(
     return list(set(all_session_exercises))
 
 
-def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
+def get_exercise(
+    activity: str, exercise: str, start: Optional[str] = None
+) -> Dict[str, pd.DataFrame]:
     if start is not None:
         start = datetime.strptime(start, "%Y-%m-%d")
     practices_dir = get_practices_dir(activity=activity)
@@ -185,6 +187,7 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
                 max(
                     [
                         float(_filter_non_digits(set_measurement))
+                        - (0 if print(date) is None else 0)
                         for set_measurement in measurement
                     ]
                 ),
@@ -195,11 +198,12 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
         ]
         dates = [date for date, _ in date_and_measurements]
         measurements = [measurement for _, measurement in date_and_measurements]
+        exercise_metric = f"{exercise} ({metric})"
         data = pd.DataFrame(
             {
                 "Session": np.arange(len(measurements)),
                 "Date": dates,
-                metric: np.array(measurements),
+                exercise_metric: np.array(measurements),
             }
         )
 
@@ -207,13 +211,19 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
         notnan_indices = np.argwhere(~np.isnan(y))
         y = y[notnan_indices]
         if y.shape[0] == 0:
-            debug("skipping", metric)
+            debug("skipping", exercise_metric)
             continue
 
-        all_data[metric] = data
+        all_data[exercise_metric] = data
 
+    return all_data
+
+
+def visualize_exercise_data(all_data: Dict[str, pd.DataFrame]):
     num_metrics = len(all_data)
-    fig, axs = plt.subplots(nrows=num_metrics, ncols=2, figsize=(20, num_metrics * 3))
+    _, axs = plt.subplots(
+        nrows=num_metrics, ncols=1, figsize=(20, num_metrics * 3), sharex="col"
+    )
 
     if num_metrics == 1:
         axs = np.array([axs])
@@ -235,7 +245,6 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
         debug(result.summary())
         metric_per_session = result.params[1]
         print(f"Increase per Session: {metric_per_session:0.2f}")
-        sns.regplot(data=data, x="Session", y=metric, ax=axs[metric_idx, 0])
 
         # Week-wise
         y = data[metric].to_numpy()
@@ -254,8 +263,8 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
         print(f"Increase per Week: {metric_per_week:0.2f}\n")
         data = data.iloc[notnan_indices, :]
 
-        sns.scatterplot(data=data, x="Date", y=metric, ax=axs[metric_idx, 1])
-        axs[metric_idx, 1].plot(data["Date"], base_metric + metric_per_week * x)
+        sns.scatterplot(data=data, x="Date", y=metric, ax=axs[metric_idx])
+        axs[metric_idx].plot(data["Date"], base_metric + metric_per_week * x)
 
         # Predictions
         print(f"{metric} Predictions:")
@@ -272,4 +281,3 @@ def get_exercise(activity: str, exercise: str, start: Optional[str] = None):
             print("\n")
     plt.tight_layout()
     plt.show()
-    return session_exercises

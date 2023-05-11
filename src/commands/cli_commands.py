@@ -8,6 +8,7 @@ from commands.commands import (
     handle_activity_info_command,
     handle_activity_ls_command,
     handle_config_command,
+    handle_exercise_compare_command,
     handle_exercise_info_command,
     handle_exercise_ls_command,
     handle_plan_create_command,
@@ -198,6 +199,7 @@ def handle_exercise_cli_command(args: Namespace):
     subcommands = {
         "ls": _handle_exercise_ls_cli_command,
         "info": _handle_exercise_info_cli_command,
+        "compare": _handle_exercise_compare_cli_command,
     }
 
     subcommands[args.subcommand](args)
@@ -210,4 +212,14 @@ def _handle_exercise_ls_cli_command(args: Namespace):
 def _handle_exercise_info_cli_command(args: Namespace):
     handle_exercise_info_command(
         activity=args.activity, exercise=args.name, start=args.start
+    )
+
+
+def _handle_exercise_compare_cli_command(args: Namespace):
+    handle_exercise_compare_command(
+        activity_1=args.activity1,
+        exercise_1=args.name1,
+        activity_2=args.activity2,
+        exercise_2=args.name2,
+        start=args.start,
     )

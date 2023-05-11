@@ -240,6 +240,9 @@ if __name__ == "__main__":
     parser_exercise_info = subparsers_exercise.add_parser(
         "info", help="get more info on a specific exercise"
     )
+    parser_exercise_compare = subparsers_exercise.add_parser(
+        "compare", help="compare the results of two different exercises"
+    )
 
     # exercise ls
     parser_exercise_ls.add_argument(
@@ -258,6 +261,27 @@ if __name__ == "__main__":
         "--name", required=True, help="the name of the exercise to get info on"
     )
     parser_exercise_info.add_argument(
+        "--start", required=False, help="the starting date to analyze, as YYYY-MM-DD"
+    )
+
+    # exercise compare
+    parser_exercise_compare.add_argument(
+        "--activity1",
+        required=True,
+        help="the activity the first exercise is associated with",
+    )
+    parser_exercise_compare.add_argument(
+        "--activity2",
+        required=True,
+        help="the activity the second exercise is associated with",
+    )
+    parser_exercise_compare.add_argument(
+        "--name1", required=True, help="the name of the first exercise to compare"
+    )
+    parser_exercise_compare.add_argument(
+        "--name2", required=True, help="the name of the second exercise to compare"
+    )
+    parser_exercise_compare.add_argument(
         "--start", required=False, help="the starting date to analyze, as YYYY-MM-DD"
     )
 
