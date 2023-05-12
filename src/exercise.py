@@ -187,7 +187,6 @@ def get_exercise(
                 max(
                     [
                         float(_filter_non_digits(set_measurement))
-                        - (0 if print(date) is None else 0)
                         for set_measurement in measurement
                     ]
                 ),
