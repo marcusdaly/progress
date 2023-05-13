@@ -11,6 +11,7 @@ from units import (
     HOURS_UNITS,
     LEFT_UNITS,
     MINUTES_UNITS,
+    PERCENTAGE_UNITS,
     POUNDS_UNITS,
     RIGHT_UNITS,
     SECONDS_UNITS,
@@ -190,6 +191,8 @@ def _measurement_to_metric(measurement: str) -> str:
         return "Minutes"
     if lower_measurement in SECONDS_UNITS:
         return "Seconds"
+    if lower_measurement in PERCENTAGE_UNITS:
+        return "Percentage"
     if lower_measurement == "[x]" or lower_measurement == "[ ]":
         return "Completion"
     if lower_measurement == "planks":
