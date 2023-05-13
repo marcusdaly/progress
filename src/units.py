@@ -7,6 +7,7 @@ HOURS_UNITS = ["hour", "hours", "hr", "hrs", "h", "hs"]
 POUNDS_UNITS = ["lb", "lbs"]
 LEFT_UNITS = ["l", "left"]
 RIGHT_UNITS = ["r", "right"]
+PERCENTAGE_UNITS = ["%"]
 
 
 def combine_units(units_1: List[str], units_2: List[str]) -> List[str]:
