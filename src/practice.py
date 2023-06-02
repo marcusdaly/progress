@@ -17,7 +17,7 @@ def create_practice(
 
     session_path = os.path.join(plan_dir, session_type + ".md")
     if not os.path.isfile(session_path):
-        raise ValueError(session_path)
+        raise FileNotFoundError(session_path)
 
     practice_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practice_dir):
@@ -41,7 +41,7 @@ def create_practice(
     practice_path = os.path.join(month_dir, practice_filename)
     if os.path.isfile(practice_path):
         if error_if_exists:
-            raise ValueError(practice_path)
+            raise FileExistsError(practice_path)
         else:
             # just skip creating the practice.
             return

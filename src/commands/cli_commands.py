@@ -19,6 +19,8 @@ from commands.commands import (
     handle_practice_create_command,
     handle_practice_info_command,
     handle_practice_ls_command,
+    handle_report_generate_command,
+    handle_report_template_command,
     handle_session_create_command,
     handle_session_info_command,
     handle_session_ls_command,
@@ -61,6 +63,28 @@ def _handle_activity_ls_cli_command(args: Namespace):
 
 def _handle_activity_info_cli_command(args: Namespace):
     handle_activity_info_command(activity=args.name)
+
+
+"""
+Report Commands
+"""
+
+
+def handle_report_cli_command(args: Namespace):
+    subcommands = {
+        "template": _handle_report_template_cli_command,
+        "generate": _handle_report_generate_cli_command,
+    }
+
+    subcommands[args.subcommand](args)
+
+
+def _handle_report_template_cli_command(args: Namespace):
+    handle_report_template_command(name=args.name, activity=args.activity)
+
+
+def _handle_report_generate_cli_command(args: Namespace):
+    handle_report_generate_command(activity=args.activity)
 
 
 """
