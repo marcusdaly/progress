@@ -219,7 +219,7 @@ def get_exercise(
 
 
 def visualize_exercise_data(
-    all_data: Dict[str, pd.DataFrame], filename: Optional[str]
+    all_data: Dict[str, pd.DataFrame], filename: Optional[str] = None
 ) -> Dict[str, Dict[str, Dict[str, float]]]:
     num_metrics = len(all_data)
     _, axs = plt.subplots(
