@@ -121,7 +121,7 @@ def get_exercises(
 ) -> List[str]:
     practices_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practices_dir):
-        raise ValueError(practices_dir)
+        raise FileNotFoundError(practices_dir)
 
     all_session_exercises = []
     for session_path, _, files in os.walk(practices_dir):
@@ -141,7 +141,7 @@ def get_exercise(
         start = datetime.strptime(start, "%Y-%m-%d")
     practices_dir = get_practices_dir(activity=activity)
     if not os.path.isdir(practices_dir):
-        raise ValueError(practices_dir)
+        raise FileNotFoundError(practices_dir)
 
     all_session_exercises: List[Dict] = []
     session_dates = []
@@ -218,7 +218,9 @@ def get_exercise(
     return all_data
 
 
-def visualize_exercise_data(all_data: Dict[str, pd.DataFrame]):
+def visualize_exercise_data(
+    all_data: Dict[str, pd.DataFrame], filename: Optional[str] = None
+) -> Dict[str, Dict[str, Dict[str, float]]]:
     num_metrics = len(all_data)
     _, axs = plt.subplots(
         nrows=num_metrics, ncols=1, figsize=(20, num_metrics * 3), sharex="col"
@@ -226,6 +228,8 @@ def visualize_exercise_data(all_data: Dict[str, pd.DataFrame]):
 
     if num_metrics == 1:
         axs = np.array([axs])
+
+    results_dict = {}
 
     for metric_idx, (metric, data) in enumerate(all_data.items()):
 
@@ -276,7 +280,25 @@ def visualize_exercise_data(all_data: Dict[str, pd.DataFrame]):
         week_52_pred = base_metric + metric_per_week * (x[-1] + 52)
         print(f"1 Year (52 Weeks): {week_52_pred:0.2f}")
 
+        results_dict[metric] = {
+            "Rates": {
+                "Increase per Session": metric_per_session,
+                "Increase per Week": metric_per_week,
+            },
+            "Predictions": {
+                "1 Month (4 Weeks)": week_4_pred,
+                "1 Season (13 Weeks)": week_13_pred,
+                "1/2 Year (26 Weeks)": week_26_pred,
+                "1 Year (52 Weeks)": week_52_pred,
+            },
+        }
+
         if metric_idx != num_metrics - 1:
             print("\n")
     plt.tight_layout()
-    plt.show()
+    if filename is None:
+        plt.show()
+    else:
+        plt.savefig(filename)
+
+    return results_dict

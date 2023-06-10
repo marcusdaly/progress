@@ -8,12 +8,12 @@ def create_session(session_type: str, plan: str, activity: str):
 
     plan_dir = get_plan_dir(plan=plan, activity=activity)
     if not os.path.isdir(plan_dir):
-        raise ValueError(plan_dir)
+        raise FileNotFoundError(plan_dir)
 
     session_name = f"{session_type}.md"
     session_path = os.path.join(plan_dir, session_name)
     if os.path.isfile(session_path):
-        raise ValueError(session_path)
+        raise FileExistsError(session_path)
 
     with open(session_path, "w") as file:
         file.write(f"# {session_type}\n")
@@ -28,7 +28,7 @@ def create_session(session_type: str, plan: str, activity: str):
 def get_sessions(plan: str, activity: str) -> List[str]:
     plan_dir = get_plan_dir(plan=plan, activity=activity)
     if not os.path.isdir(plan_dir):
-        raise ValueError(plan_dir)
+        raise FileNotFoundError(plan_dir)
 
     plan_paths = os.listdir(plan_dir)
     sessions = [

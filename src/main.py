@@ -11,6 +11,7 @@ from commands.cli_commands import (
     handle_exercise_cli_command,
     handle_plan_cli_command,
     handle_practice_cli_command,
+    handle_report_cli_command,
     handle_session_cli_command,
     handle_skill_cli_command,
 )
@@ -25,6 +26,7 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(title="commands", dest="command", required=True)
     parser_config = subparsers.add_parser("config", help="sets a new configuration")
     parser_activity = subparsers.add_parser("activity", help="manage activities")
+    parser_report = subparsers.add_parser("report", help="manage reports")
     parser_skill = subparsers.add_parser("skill", help="manage skills")
     parser_plan = subparsers.add_parser("plan", help="manage plans")
     parser_session = subparsers.add_parser("session", help="manage sessions")
@@ -67,7 +69,37 @@ if __name__ == "__main__":
         "--name", required=True, help="the name of the activity to get info on"
     )
 
-    # skill
+    """
+    Report
+    """
+    subparsers_report = parser_report.add_subparsers(
+        title="subcommands", dest="subcommand", required=True
+    )
+    parser_report_template = subparsers_report.add_parser(
+        "template", help="create a template for a new type of report"
+    )
+    parser_report_generate = subparsers_report.add_parser(
+        "generate", help="generate reports"
+    )
+
+    # report template
+    parser_report_template.add_argument(
+        "--activity",
+        required=True,
+        help="the activity to the new report will be associated with",
+    )
+    parser_report_template.add_argument(
+        "--name", required=True, help="the name of the new report templates"
+    )
+
+    # report generate
+    parser_report_generate.add_argument(
+        "--activity", required=True, help="the activity to generate reports for"
+    )
+
+    """
+    Skill
+    """
     subparsers_skill = parser_skill.add_subparsers(
         title="subcommands", dest="subcommand", required=True
     )
@@ -293,6 +325,7 @@ if __name__ == "__main__":
     simple_args_commands = {
         "config": handle_config_cli_command,
         "activity": handle_activity_cli_command,
+        "report": handle_report_cli_command,
         "skill": handle_skill_cli_command,
         "plan": handle_plan_cli_command,
         "session": handle_session_cli_command,

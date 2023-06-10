@@ -6,6 +6,7 @@ from config import create_config
 from exercise import get_exercise, get_exercises, visualize_exercise_data
 from plan import create_plan, get_plans, schedule, visualize_plan
 from practice import create_practice
+from report import create_report_template, generate_reports
 from session import create_session, get_sessions
 from skill import create_skill, get_skills
 
@@ -35,6 +36,19 @@ def handle_activity_ls_command():
 def handle_activity_info_command(activity: str):
     activity = get_activity(activity=activity)
     print(activity)
+
+
+"""
+Report
+"""
+
+
+def handle_report_template_command(name: str, activity: str):
+    create_report_template(name, activity)
+
+
+def handle_report_generate_command(activity: str):
+    generate_reports(activity)
 
 
 """

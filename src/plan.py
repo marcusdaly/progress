@@ -35,13 +35,13 @@ def create_plan(plan: str, activity: str):
 
     plan_dir = get_plan_dir(plan=plan, activity=activity, date=date)
     if os.path.isdir(plan_dir):
-        raise ValueError(plan)
+        raise FileExistsError(plan)
     os.mkdir(plan_dir)
 
     schedule_name = "Schedule.md"
     schedule_path = os.path.join(plan_dir, schedule_name)
     if os.path.isfile(schedule_path):
-        raise ValueError(schedule_path)
+        raise FileExistsError(schedule_path)
 
     with open(schedule_path, "w") as file:
         file.write("# Monday\n")
@@ -73,11 +73,11 @@ def schedule(until: str, plan: str, activity: str):
 
     plan_dir = get_plan_dir(plan=plan, activity=activity)
     if not os.path.isdir(plan_dir):
-        raise ValueError(plan)
+        raise FileNotFoundError(plan)
     schedule_name = "Schedule.md"
     schedule_path = os.path.join(plan_dir, schedule_name)
     if not os.path.isfile(schedule_path):
-        raise ValueError(schedule_path)
+        raise FileNotFoundError(schedule_path)
 
     with open(schedule_path, "r") as file:
         lines = file.readlines()
@@ -221,11 +221,11 @@ def _filter_digits(string: str) -> str:
 def visualize_plan(plan: str, activity: str):
     plan_dir = get_plan_dir(plan=plan, activity=activity)
     if not os.path.isdir(plan_dir):
-        raise ValueError(plan)
+        raise FileNotFoundError(plan)
     schedule_name = "Schedule.md"
     schedule_path = os.path.join(plan_dir, schedule_name)
     if not os.path.isfile(schedule_path):
-        raise ValueError(schedule_path)
+        raise FileNotFoundError(schedule_path)
 
     # TODO get all of the sessions associated with this plan
     session_names = [
