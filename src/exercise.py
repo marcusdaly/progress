@@ -12,6 +12,8 @@ import statsmodels.api as sm
 from dir_utils import get_practices_dir
 from plan import _filter_non_digits, _measurement_to_metric
 
+plt.style.use("seaborn-v0_8")
+
 
 def _get_exercises_from_file(session_dir: str) -> List[str]:
     with open(session_dir, "r") as file:
