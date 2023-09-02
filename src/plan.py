@@ -18,6 +18,8 @@ from units import (
     combine_units,
 )
 
+plt.style.use("seaborn-v0_8")
+
 DOW_TO_INT = {
     "Monday": 0,
     "Tuesday": 1,
