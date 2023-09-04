@@ -272,8 +272,8 @@ def visualize_exercise_data(
 
         next_week = np.floor(np.max(x)) + 1
         max_forecast_weeks = 52
-        # predict at most as many weeks as we have observed
-        num_forecast_weeks = min(max_forecast_weeks, next_week - 1)
+        # predict at most half as many weeks as we have observed
+        num_forecast_weeks = min(max_forecast_weeks, (next_week - 1) // 2)
         final_week = next_week + num_forecast_weeks
         future_weeks_from_start = np.concatenate(
             [[np.max(x)], np.arange(next_week, final_week)]

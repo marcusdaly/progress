@@ -2,9 +2,9 @@
 `progress` is a tool to planning, tracking, and visualizing progress of all kinds. We'll try to make it as easy as possible, but you have to put in the real effort.
 
 # Usage
-Here, we'll give you a quick guide to how to start using `progress`.
+Here, we'll guide you through how to start using `progress`.
 
-Pre-reqs:
+## Pre-reqs:
 1. We recommend using [Obsidian](https://obsidian.md/) to visualize your files. This will make it easy to write plans, log your practices, etc.
 2. Set up a python 3.9 virtual environment and install the requirements from `requirements.txt` with something like
     ```sh
@@ -54,15 +54,15 @@ there are a few steps to creating a Plan:
     that session. An approximate template is provided, but must be customized
     for your Session. For example:
         ```md
-        # Push
-        - Weighted Dips
+        # Pull
+        - Weighted Pullups
             - Metric: Reps | Weight
             - Reps: 3 - 5
-            - Rest: 3 mins
+            - Rest: 5 mins
             - Sets: 4
-        - Planche
+        - Front Lever
             - Metric: Variation | Seconds
-            - Rest: 2 mins
+            - Rest: 3 mins
             - Sets: 3
         ```
     For more documentation on how to specify different exercises, see TODO.
@@ -72,22 +72,22 @@ there are a few steps to creating a Plan:
     as in the example below:
         ```md
         # Monday
-        - Push
+        - Pull
             - 08:00 - 09:00
         - Legs
             - 17:00 - 18:00
         # Tuesday
-        - Pull
+        - Push
             - 17:00 - 18:00
         # Wednesday
         - Rest
         # Thursday
-        - Push
+        - Pull
             - 08:00 - 09:00
         - Legs
             - 17:00 - 18:00
         # Friday
-        - Pull
+        - Push
             - 17:00 - 18:00
         # Saturday
         - Rest
@@ -102,31 +102,31 @@ to fill create a **Practice** for each day in the near future:
     ```
     This will use your weekly schedule and corresponding sessions to create a file
     for each practice from today until the date specified (here, 2024-01-01).
-    Each practice file will be named according to 1) the date of the practice, 2) the plan name, and 3) the session name. For example, `2023-09-04 Workouts - Push.md`.
+    Each practice file will be named according to 1) the date of the practice, 2) the plan name, and 3) the session name. For example, `2023-09-04 Workouts - Pull.md`.
 
     As you might end up with *many* practices over time, the contents of the `Practice`
     directory are stored hierarchically by date. So, the example above would be found
-    at `Practice/2023/2023-09/2023-09-04 Workouts - Push.md`. This makes it much easier
+    at `Practice/2023/2023-09/2023-09-04 Workouts - Pull.md`. This makes it much easier
     to navigate when you have a large number of practices for a given activity.
 
 6. Go out and practice your activity! While (or after) practicing your activity,
 fill out the corresponding practice file. The example file referenced in step 4 will
 initially look like the following:
     ```md
-    # Push
+    # Pull
     ### HH:MM - HH:MM
-    - Weighted Dips
+    - Weighted Pullups
         - Metric: Reps | Weight
         - Reps: 3 - 5
-        - Rest: 3 mins
+        - Rest: 5 mins
         - Sets: 4
         1.
         2.
         3.
         4.
-    - Planche
+    - Front Lever
         - Metric: Variation | Seconds
-        - Rest: 2 mins
+        - Rest: 3 mins
         - Sets: 3
         1.
         2.
@@ -149,20 +149,20 @@ initially look like the following:
 
     After completing your practice, the file should look something like this:
     ```md
-    # Push
+    # Pull
     ### 18:30 - 19:30
-    - Weighted Dips
+    - Weighted Pullups
         - Metric: Reps | Weight
         - Reps: 3 - 5
-        - Rest: 3 mins
+        - Rest: 5 mins
         - Sets: 4
         1. 50 lbs, 5
         2. 55 lbs, 5
         3. 60 lbs, 4
         4. 60 lbs, 3
-    - Planche
+    - Front Lever
         - Metric: Variation | Seconds
-        - Rest: 2 mins
+        - Rest: 3 mins
         - Sets: 3
         1. Tuck, 20 s
         2. Straddle, 10 s
@@ -182,22 +182,84 @@ about this:
     1. (_Ad-hoc_) **Visualize a your progress in a single exercise.** In order to
     visualize your progress in a single exercise, run the following command:
         ```sh
-        python src/main.py exercise visualize --activity <your activity> --name <your exercise>
+        python src/main.py exercise visualize --activity <your activity> --name <your exercise> [--start YYYY-MM-DD]
         ```
-        Considering an example of Weighted Dips from above:
+        Considering an example of Weighted Pullups from above:
         ```sh
-        python src/main.py exercise visualize --activity Calisthenics --name "Weighted Dips"
+        python src/main.py exercise visualize --activity Calisthenics --name "Weighted Pullups" --start 2023-01-10
         ```
 
-        This will create a visualization like the following:
+        This will create a visualization like the following: ![](media/Weighted_Pullups.png)
+        Points on the plot indicate measurements, and the line is a linear regression
+        of the metric over time. Related statistics and predictions will also be
+        provided in the terminal.
 
 
-    2. (_Systematic_) **Create a report on your progress over a set of exercises.**
+    2. (_Systematic_) **Create a report on your progress over a set of exercises.** In
+    order to create a report for a set of exercises, there are a handful of steps.
+
+        1. Generate a template of the report. To start, run the following command
+        with appropriate arguments.
+            ```sh
+            python src/main.py report template --activity Calisthenics --name "Pulling Strength"
+            ```
+            This will create a new `Pulling Strength` directory in
+            `Calisthenics/Report` with a single file in it, `Template.md`:
+
+            ```md
+            - Exercise: exercise name 1 here
+            - Exercise: exercise name 2 here (optional, can put more)
+            - Start: YYYY-MM-DD (optional)
+            ```
+
+        2. Edit the template to indicate which exercises should be analyzed, and
+        optionally, what date to start analyzing these exercises from. For example:
+
+            ```md
+            - Exercise: Weighted Pullups
+            - Start: 2023-01-10
+            ```
+        3. Finally, generate the report. This is done simultaneously for all reports
+        defined for an activity via a command like
+            ```sh
+            python src/main.py report generate --activity Calisthenics
+            ```
+            After running this command, you will see that a new `Visualization.png` file
+            is created (feel free to ignore this, as it is also shown in the report),
+            along with a `Report.md` file, both in the same location as `Template.md`.
+
+            ```md
+            # Weighted Pullups (Weight)
+            ## Rates
+            - Increase per Session: **0.36**
+            - Increase per Week: **1.00**
+            ## Predictions
+            - 1 Month (4 Weeks): **88.76**
+            - 1 Season (13 Weeks): **97.74**
+            - 1/2 Year (26 Weeks): **110.72**
+            - 1 Year (52 Weeks): **136.67**
+            # Weighted Pullups (Reps)
+            ## Rates
+            - Increase per Session: **-0.00**
+            - Increase per Week: **-0.01**
+            ## Predictions
+            - 1 Month (4 Weeks): **4.52**
+            - 1 Season (13 Weeks): **4.42**
+            - 1/2 Year (26 Weeks): **4.26**
+            - 1 Year (52 Weeks): **3.96**
+            # Visualization
+            ```
+            ![](media/Weighted_Pullups.png)
+
+            Note that this is all of the same information as included in a
+            single-exercise visualization, but is all placed in an easily-viewable
+            markdown file, can be easily updated, and can support multiple exercises
+            at once.
 
 
 
-# Overview
-First, we'll go over what `progress` has to offer.
+# Content
+Here, we'll go over the key elements of `progress` and how to interact with them.
 ## Activities
 In order to work its magic, `progress` interfaces with a directory on your computer that holds information on your progress for a specific **activity**.
 
@@ -207,32 +269,18 @@ Example activities:
 - Park Skiing
 - Typing
 
-## Skills
-Each activity may encompass a variety of **skills**. These skills are specific parts of an activity that should be in some way measurable.
-
-Of course, it can be hard to categorize some skills into discrete categoires—maybe you're trying to land a front 270 out one week and a front swap the next. You might keep track of these each as their own skill, but we can view these as more overarching skills later, like "Frontside spins on rails" or even "Rail Tricks."
-
-## Practice
+## Practices
 In order to progress, you need to **practice**. `progress` can track your practices in a few main ways:
 1. Track when you show up. This is a prerequisite for everything else, so you should know when you do this!
 2. Track the content & success of your practices. Whether this is weight/sets/reps, words per minute, or whether you stomped the trick, we can track it. Don't want to get bogged down and distracted by tracking every little thing? No worries. Track as much detail as you like (e.g. "50% of my session I projected some V6-V7 slab problems, then I finished up with some easier overhangs & campusing")
 3. Key qualitative notes from your practice. If you're trying to hold a handstand longer and you finally find something that ticked, you *need* to remember what you did. Track some notes, maybe even link a video showing what you did right.
 
-## Planning
+## Plans
 Planning is important in order to guide our progress toward our goals. There are two high-level parts of planning:
 1. **Long-term schedule**. How many days a week are you climbing? How many sets a week are you training each muscle group? Get a plan together that you can follow.
 2. **Individual session plan**. What exercises are you doing on your leg days? When during your typing practice will you add in punctuation to your all-lowercase typing? If you can have roughly do the same thing on the same days on a weekly basis, great. Try to abstract to some level where you can reliably repeat this schedule for many sessions, and you can go into the details in your practice log. Finally, this should also outline what information should be recorded about this session.
 
-# Usage
-Now that we know what `progress` had to offer, let's see how we can use it.
-
-## Setup
-0. Optionally, use [Obsidian](https://obsidian.md/) to visualize your files (this will be the easiest way to write plans, log your practices, etc.)
-1. Create whatever activities you want to progress in.
-2. List out some skills that fall under those activities. No worries if you miss some or realize later that some skill intersects multiple activities—we'll be able to adjust for that.
-3. Write out your plan for how you're going to practice.
-4. Follow that plan and log your practices.
-5. See your progression and use that to inform your future plans!
+## Reports
 
 
 ---
