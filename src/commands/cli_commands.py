@@ -24,9 +24,6 @@ from commands.commands import (
     handle_session_create_command,
     handle_session_info_command,
     handle_session_ls_command,
-    handle_skill_create_command,
-    handle_skill_info_command,
-    handle_skill_ls_command,
 )
 
 """
@@ -85,33 +82,6 @@ def _handle_report_template_cli_command(args: Namespace):
 
 def _handle_report_generate_cli_command(args: Namespace):
     handle_report_generate_command(activity=args.activity)
-
-
-"""
-Skill Commands
-"""
-
-
-def handle_skill_cli_command(args: Namespace):
-    subcommands = {
-        "create": _handle_skill_create_cli_command,
-        "ls": _handle_skill_ls_cli_command,
-        "info": _handle_skill_info_cli_command,
-    }
-
-    subcommands[args.subcommand](args)
-
-
-def _handle_skill_create_cli_command(args: Namespace):
-    handle_skill_create_command(skill=args.name, activity=args.activity)
-
-
-def _handle_skill_ls_cli_command(args: Namespace):
-    handle_skill_ls_command(activity=args.activity)
-
-
-def _handle_skill_info_cli_command(args: Namespace):
-    handle_skill_info_command(skill=args.name)
 
 
 """
