@@ -280,6 +280,54 @@ Planning is important in order to guide our progress toward our goals. There are
 1. **Long-term schedule**. How many days a week are you climbing? How many sets a week are you training each muscle group? Get a plan together that you can follow.
 2. **Individual session plan**. What exercises are you doing on your leg days? When during your typing practice will you add in punctuation to your all-lowercase typing? If you can have roughly do the same thing on the same days on a weekly basis, great. Try to abstract to some level where you can reliably repeat this schedule for many sessions, and you can go into the details in your practice log. Finally, this should also outline what information should be recorded about this session.
 
+### Sets
+We refer to each separate effort of an exercise as a "set". Note that a given exercise
+may not typically be thought of has having "sets" (e.g., climbing, running), so in this
+case, choose whatever level of granularity you will be comfortable with logging.
+For example, in climbing, we could define any of the following as a "set":
+- A climb that was worked on for potentially many attempts
+- A single attempt of a climb
+
+At other times, the entire effort can be though of as a single "set", as may be the case
+for going on a 2-mile run.
+
+Ultimately, we leave the choice of what to call a "set" to you.
+
+## Metrics
+For each set of each exercise, you will log various metrics.
+
+- **Reps**: The number of repetitions of an exercise. No units should be specified.
+
+- **Seconds**: The number of seconds an exercise was performed. A unit indicating seconds should be
+specified (e.g., "s", "sec").
+
+- **Hours/Minutes**: The number of hours/minutes an exercise was performed. A unit indicating hours and/or
+minutes should be specified (e.g., "h", "min").
+
+- **Weight**: The weight of the exercise. A unit indicating weight should be specified (e.g., lbs).
+
+- **Misc.**: Other metrics will not yet have special treatment, but may in the future. Use any
+units as appropriate.
+
+- **Left vs. Right**: Many exercises may be performed unilaterally, requiring separate
+measurements for the left and right sides. This can be combined with any of the above.
+To indicate the side of a metric, append a modifier to the unit indicating the side
+(e.g., 40 lbs R, 35 lbs L; 5 Right, 6 Left).
+
+### How do I plan...
+- Sets?
+    - Specify the number of sets!
+- Circuits/Supersets?
+    - Nothing special right now. Just treat them like separate exercises each with the
+    same number of sets.
+- Climbs?
+    - Mark any key metrics you want to log. Some good ones could include
+        - number of attempts
+        - time spent on problem
+        - name of problem
+        - grade
+        - notes about the climb
+
 ## Reports
 
 
