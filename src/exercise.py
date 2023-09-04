@@ -12,6 +12,8 @@ import statsmodels.api as sm
 from dir_utils import get_practices_dir
 from plan import _filter_non_digits, _measurement_to_metric
 
+plt.style.use("seaborn-v0_8")
+
 
 def _get_exercises_from_file(session_dir: str) -> List[str]:
     with open(session_dir, "r") as file:
@@ -267,7 +269,25 @@ def visualize_exercise_data(
         data = data.iloc[notnan_indices, :]
 
         sns.scatterplot(data=data, x="Date", y=metric, ax=axs[metric_idx])
-        axs[metric_idx].plot(data["Date"], base_metric + metric_per_week * x)
+
+        next_week = np.floor(np.max(x)) + 1
+        max_forecast_weeks = 52
+        # predict at most as many weeks as we have observed
+        num_forecast_weeks = min(max_forecast_weeks, next_week - 1)
+        final_week = next_week + num_forecast_weeks
+        future_weeks_from_start = np.concatenate(
+            [[np.max(x)], np.arange(next_week, final_week)]
+        )
+        dates_future = (
+            data["Date"].iat[0] + pd.Timedelta(weeks=1) * future_weeks_from_start
+        )
+        plots = axs[metric_idx].plot(data["Date"], base_metric + metric_per_week * x)
+        axs[metric_idx].plot(
+            dates_future,
+            base_metric + metric_per_week * future_weeks_from_start,
+            linestyle="--",
+            color=plots[-1].get_color(),
+        )
 
         # Predictions
         print(f"{metric} Predictions:")
