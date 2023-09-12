@@ -204,6 +204,12 @@ def _measurement_to_metric(measurement: str) -> str:
     return "Variation"
 
 
+def _str_to_float(string: str) -> float:
+    if string == "":
+        return np.nan
+    return float(string)
+
+
 def _filter_non_digits(string: str) -> str:
     result = ""
     for char in string:

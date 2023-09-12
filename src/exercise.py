@@ -10,7 +10,7 @@ import seaborn as sns
 import statsmodels.api as sm
 
 from dir_utils import get_practices_dir
-from plan import _filter_non_digits, _measurement_to_metric
+from plan import _filter_non_digits, _measurement_to_metric, _str_to_float
 
 plt.style.use("seaborn-v0_8")
 
@@ -137,7 +137,9 @@ def get_exercises(
 
 
 def get_exercise(
-    activity: str, exercise: str, start: Optional[str] = None
+    activity: str,
+    exercise: str,
+    start: Optional[str] = None,
 ) -> Dict[str, pd.DataFrame]:
     if start is not None:
         start = datetime.strptime(start, "%Y-%m-%d")
@@ -182,36 +184,39 @@ def get_exercise(
                 if date >= start
             ]
 
-        # take just first for now
+        # take all measurements across all sets.
         date_and_measurements = [
             (
                 date,
-                max(
-                    [
-                        float(_filter_non_digits(set_measurement))
-                        for set_measurement in measurement
-                    ]
-                ),
+                [
+                    _str_to_float(_filter_non_digits(set_measurement))
+                    for set_measurement in measurement
+                ],
             )
             if len(measurement) > 0 and any(len(m) > 0 for m in measurement)
-            else (date, np.nan)
+            else (date, [np.nan])
             for date, measurement in date_and_measurements
         ]
-        dates = [date for date, _ in date_and_measurements]
-        measurements = [measurement for _, measurement in date_and_measurements]
         exercise_metric = f"{exercise} ({metric})"
-        data = pd.DataFrame(
-            {
-                "Session": np.arange(len(measurements)),
-                "Date": dates,
-                exercise_metric: np.array(measurements),
-            }
+
+        data = pd.DataFrame.from_records(
+            [
+                {
+                    "Session": session_idx,
+                    "Set": set_idx,
+                    "Date": date,
+                    exercise_metric: set_metric,
+                }
+                for session_idx, (date, measurements) in enumerate(
+                    date_and_measurements
+                )
+                for set_idx, set_metric in enumerate(measurements)
+            ]
         )
 
-        y = np.array(measurements)
+        y = data[exercise_metric].to_numpy()
         notnan_indices = np.argwhere(~np.isnan(y))
-        y = y[notnan_indices]
-        if y.shape[0] == 0:
+        if y[notnan_indices].shape[0] == 0:
             debug("skipping", exercise_metric)
             continue
 
