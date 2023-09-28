@@ -10,7 +10,7 @@ import seaborn as sns
 import statsmodels.api as sm
 
 from dir_utils import get_practices_dir
-from plan import _filter_non_digits, _measurement_to_metric
+from plan import _filter_non_digits, _measurement_to_metric, _str_to_float
 
 plt.style.use("seaborn-v0_8")
 
@@ -137,8 +137,27 @@ def get_exercises(
 
 
 def get_exercise(
-    activity: str, exercise: str, start: Optional[str] = None
-) -> Dict[str, pd.DataFrame]:
+    activity: str,
+    exercise: str,
+    start: Optional[str] = None,
+) -> pd.DataFrame:
+    """
+    Get the data for a given exercise.
+
+    Args:
+        activity (str): The activity of the exercise.
+        exercise (str): The specified exercise.
+        start (Optional[str], optional): The date to start looking at historical data. Defaults to None.
+
+    Returns:
+        pd.DataFrame: A dataframe of the results.
+            This has the following columns:
+            - Date
+            - Session
+            - Set
+            - One column corresponding to each metric.
+            Each row corresponds to a single set performed.
+    """
     if start is not None:
         start = datetime.strptime(start, "%Y-%m-%d")
     practices_dir = get_practices_dir(activity=activity)
@@ -154,7 +173,7 @@ def get_exercise(
             session_date, session_exercises = _get_exercise_results_from_file(
                 session_dir, exercise_name=exercise
             )
-            if len(session_exercises) > 0:
+            if len(session_exercises) > 0 and (start is None or session_date >= start):
                 all_session_exercises.append(session_exercises)
                 session_dates.append(session_date)
     metrics = list(
@@ -174,56 +193,67 @@ def get_exercise(
             for date, exercise_metrics in zip(session_dates, all_session_exercises)
         ]
 
-        # filter by date
-        if start is not None:
-            date_and_measurements = [
-                (date, measurement)
-                for date, measurement in date_and_measurements
-                if date >= start
-            ]
-
-        # take just first for now
+        # take all measurements across all sets.
         date_and_measurements = [
             (
                 date,
-                max(
-                    [
-                        float(_filter_non_digits(set_measurement))
-                        for set_measurement in measurement
-                    ]
-                ),
+                [
+                    _str_to_float(_filter_non_digits(set_measurement))
+                    for set_measurement in measurement
+                ],
             )
             if len(measurement) > 0 and any(len(m) > 0 for m in measurement)
-            else (date, np.nan)
+            else (date, [np.nan])
             for date, measurement in date_and_measurements
         ]
-        dates = [date for date, _ in date_and_measurements]
-        measurements = [measurement for _, measurement in date_and_measurements]
-        exercise_metric = f"{exercise} ({metric})"
-        data = pd.DataFrame(
-            {
-                "Session": np.arange(len(measurements)),
-                "Date": dates,
-                exercise_metric: np.array(measurements),
-            }
+
+        data = pd.DataFrame.from_records(
+            [
+                {
+                    "Session": session_idx,
+                    "Set": set_idx,
+                    "Date": date,
+                    metric: set_metric,
+                }
+                for session_idx, (date, measurements) in enumerate(
+                    date_and_measurements
+                )
+                for set_idx, set_metric in enumerate(measurements)
+            ]
         )
 
-        y = np.array(measurements)
+        y = data[metric].to_numpy()
         notnan_indices = np.argwhere(~np.isnan(y))
-        y = y[notnan_indices]
-        if y.shape[0] == 0:
-            debug("skipping", exercise_metric)
+        if y[notnan_indices].shape[0] == 0:
+            debug("skipping", exercise, metric)
             continue
 
-        all_data[exercise_metric] = data
+        all_data[metric] = data
 
-    return all_data
+    final_metrics = list(all_data.keys())
+    exercise_data = all_data[final_metrics[0]]
+    for metric in final_metrics[1:]:
+        exercise_data = pd.merge(
+            exercise_data, all_data[metric], how="outer", on=["Date", "Set", "Session"]
+        )
+
+    # drop data if any rows are absent of measurements
+    exercise_data = exercise_data.dropna(how="all", subset=final_metrics)
+
+    return exercise_data
 
 
 def visualize_exercise_data(
     all_data: Dict[str, pd.DataFrame], filename: Optional[str] = None
 ) -> Dict[str, Dict[str, Dict[str, float]]]:
-    num_metrics = len(all_data)
+    num_metrics = len(
+        [
+            col
+            for data in all_data.values()
+            for col in data.columns
+            if col not in {"Set", "Date", "Session"}
+        ]
+    )
     _, axs = plt.subplots(
         nrows=num_metrics, ncols=1, figsize=(20, num_metrics * 3), sharex="col"
     )
@@ -233,88 +263,104 @@ def visualize_exercise_data(
 
     results_dict = {}
 
-    for metric_idx, (metric, data) in enumerate(all_data.items()):
+    num_plots = 0
+    for exercise, data in sorted(all_data.items(), key=lambda x: x[0]):
 
-        print(f"Results for {metric}:")
+        for metric in sorted(
+            [col for col in data.columns if col not in {"Set", "Date", "Session"}]
+        ):
 
-        # Session-wise
-        y = data[metric].to_numpy()
-        x = data["Session"].to_numpy()
-        notnan_indices = np.argwhere(~np.isnan(y)).flatten()
-        y = y[notnan_indices]
-        x = x[notnan_indices]
-        model = sm.OLS(y, sm.add_constant(x))
-        result = model.fit()
+            exercise_metric = f"{exercise} ({metric})"
 
-        debug(f"{metric} Rates\n")
-        debug(result.summary())
-        metric_per_session = result.params[1]
-        print(f"Increase per Session: {metric_per_session:0.2f}")
+            print(f"Results for {exercise_metric}:")
 
-        # Week-wise
-        y = data[metric].to_numpy()
-        weeks_from_start = (data["Date"] - data["Date"].iat[0]).dt.days / 7
-        x = weeks_from_start.to_numpy()
-        notnan_indices = np.argwhere(~np.isnan(y)).flatten()
-        y = y[notnan_indices]
-        x = x[notnan_indices]
-        model = sm.OLS(y, sm.add_constant(x))
-        result = model.fit()
+            # Session-wise
+            y = data[metric].to_numpy()
+            x = data["Session"].to_numpy()
+            notnan_indices = np.argwhere(~np.isnan(y)).flatten()
+            y = y[notnan_indices]
+            x = x[notnan_indices]
+            model = sm.OLS(y, sm.add_constant(x))
+            result = model.fit()
 
-        debug(f"{metric} Week-wise\n")
-        debug(result.summary())
-        base_metric = result.params[0]
-        metric_per_week = result.params[1]
-        print(f"Increase per Week: {metric_per_week:0.2f}\n")
-        data = data.iloc[notnan_indices, :]
+            debug(f"{exercise_metric} Rates\n")
+            debug(result.summary())
+            metric_per_session = result.params[1]
+            print(f"Increase per Session: {metric_per_session:0.2f}")
 
-        sns.scatterplot(data=data, x="Date", y=metric, ax=axs[metric_idx])
+            # Week-wise
+            y = data[metric].to_numpy()
+            weeks_from_start = (data["Date"] - data["Date"].iat[0]).dt.days / 7
+            x = weeks_from_start.to_numpy()
+            notnan_indices = np.argwhere(~np.isnan(y)).flatten()
+            y = y[notnan_indices]
+            x = x[notnan_indices]
+            model = sm.OLS(y, sm.add_constant(x))
+            result = model.fit()
 
-        next_week = np.floor(np.max(x)) + 1
-        max_forecast_weeks = 52
-        # predict at most half as many weeks as we have observed
-        num_forecast_weeks = min(max_forecast_weeks, (next_week - 1) // 2)
-        final_week = next_week + num_forecast_weeks
-        future_weeks_from_start = np.concatenate(
-            [[np.max(x)], np.arange(next_week, final_week)]
-        )
-        dates_future = (
-            data["Date"].iat[0] + pd.Timedelta(weeks=1) * future_weeks_from_start
-        )
-        plots = axs[metric_idx].plot(data["Date"], base_metric + metric_per_week * x)
-        axs[metric_idx].plot(
-            dates_future,
-            base_metric + metric_per_week * future_weeks_from_start,
-            linestyle="--",
-            color=plots[-1].get_color(),
-        )
+            debug(f"{exercise_metric} Week-wise\n")
+            debug(result.summary())
+            base_metric = result.params[0]
+            metric_per_week = result.params[1]
+            print(f"Increase per Week: {metric_per_week:0.2f}\n")
+            notnan_data = data.iloc[notnan_indices, :]
 
-        # Predictions
-        print(f"{metric} Predictions:")
-        week_4_pred = base_metric + metric_per_week * (x[-1] + 4)
-        print(f"1 Month (4 Weeks): {week_4_pred:0.2f}")
-        week_13_pred = base_metric + metric_per_week * (x[-1] + 13)
-        print(f"1 Season (13 Weeks): {week_13_pred:0.2f}")
-        week_26_pred = base_metric + metric_per_week * (x[-1] + 26)
-        print(f"1/2 Year (26 Weeks): {week_26_pred:0.2f}")
-        week_52_pred = base_metric + metric_per_week * (x[-1] + 52)
-        print(f"1 Year (52 Weeks): {week_52_pred:0.2f}")
+            sns.scatterplot(data=notnan_data, x="Date", y=metric, ax=axs[num_plots])
 
-        results_dict[metric] = {
-            "Rates": {
-                "Increase per Session": metric_per_session,
-                "Increase per Week": metric_per_week,
-            },
-            "Predictions": {
-                "1 Month (4 Weeks)": week_4_pred,
-                "1 Season (13 Weeks)": week_13_pred,
-                "1/2 Year (26 Weeks)": week_26_pred,
-                "1 Year (52 Weeks)": week_52_pred,
-            },
-        }
+            next_week = np.floor(np.max(x)) + 1
+            max_forecast_weeks = 52
+            # predict at most half as many weeks as we have observed
+            num_forecast_weeks = min(max_forecast_weeks, (next_week - 1) // 2)
+            final_week = next_week + num_forecast_weeks
+            future_weeks_from_start = np.concatenate(
+                [[np.max(x)], np.arange(next_week, final_week)]
+            )
+            dates_future = (
+                notnan_data["Date"].iat[0]
+                + pd.Timedelta(weeks=1) * future_weeks_from_start
+            )
+            plots = axs[num_plots].plot(
+                notnan_data["Date"], base_metric + metric_per_week * x
+            )
+            axs[num_plots].plot(
+                dates_future,
+                base_metric + metric_per_week * future_weeks_from_start,
+                linestyle="--",
+                color=plots[-1].get_color(),
+            )
 
-        if metric_idx != num_metrics - 1:
-            print("\n")
+            exercise_metric_multiline = exercise_metric.replace(" (", "\n")
+            exercise_metric_multiline = exercise_metric_multiline.replace(")", "")
+            axs[num_plots].set_ylabel(exercise_metric_multiline)
+
+            # Predictions
+            print(f"{exercise_metric} Predictions:")
+            week_4_pred = base_metric + metric_per_week * (x[-1] + 4)
+            print(f"1 Month (4 Weeks): {week_4_pred:0.2f}")
+            week_13_pred = base_metric + metric_per_week * (x[-1] + 13)
+            print(f"1 Season (13 Weeks): {week_13_pred:0.2f}")
+            week_26_pred = base_metric + metric_per_week * (x[-1] + 26)
+            print(f"1/2 Year (26 Weeks): {week_26_pred:0.2f}")
+            week_52_pred = base_metric + metric_per_week * (x[-1] + 52)
+            print(f"1 Year (52 Weeks): {week_52_pred:0.2f}")
+
+            results_dict[exercise_metric] = {
+                "Rates": {
+                    "Increase per Session": metric_per_session,
+                    "Increase per Week": metric_per_week,
+                },
+                "Predictions": {
+                    "1 Month (4 Weeks)": week_4_pred,
+                    "1 Season (13 Weeks)": week_13_pred,
+                    "1/2 Year (26 Weeks)": week_26_pred,
+                    "1 Year (52 Weeks)": week_52_pred,
+                },
+            }
+
+            if num_plots != num_metrics - 1:
+                print("\n")
+
+            num_plots += 1
     plt.tight_layout()
     if filename is None:
         plt.show()
