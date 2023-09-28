@@ -14,6 +14,10 @@ from dir_utils import (
 from exercise import get_exercise, visualize_exercise_data
 from orm_calculations import calculate_orm
 
+# Type of aggregation to be performed over sets in a single session.
+# Setting as None keeps all sets.
+SET_AGG_FUNCTION = "max"
+
 
 def create_report_template(name: str, activity: str):
     report_dir = get_report_dir(name, activity)
@@ -54,7 +58,9 @@ def generate_reports(activity: str):
             "Weight Right": "Reps Right",
         }
 
-        # This is a hard-coded exercise name representing your "bodyweight" measurement.
+        # NOTE: This is a hard-coded exercise name
+        # representing your "bodyweight" measurement.
+        # TODO This should probably be configurable globally.
         bodyweight = "Weight"
         is_bodyweight_exercise = False
         normalize_by_bodyweight = False
@@ -78,7 +84,6 @@ def generate_reports(activity: str):
             for exercise in exercises
         }
 
-        # TODO actually parameterize in report for "Weight" exercises.
         weight_exercises = [
             exercise
             for exercise, data in all_data.items()
@@ -89,8 +94,9 @@ def generate_reports(activity: str):
                 "is_bw_exercise": is_bodyweight_exercise,
                 "normalize_by_bw": normalize_by_bodyweight,
                 "calculate_orm": True,
-                "set_agg_func": "max",
-                # "set_agg_func": None,
+                # NOTE may want to parameterize by exercise at some point.
+                # For now, a global aggregation function is fine.
+                "set_agg_func": SET_AGG_FUNCTION,
             }
             for exercise in weight_exercises
         }
