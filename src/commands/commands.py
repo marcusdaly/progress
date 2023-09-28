@@ -8,7 +8,6 @@ from plan import create_plan, get_plans, schedule, visualize_plan
 from practice import create_practice
 from report import create_report_template, generate_reports
 from session import create_session, get_sessions
-from skill import create_skill, get_skills
 
 """
 Config
@@ -49,24 +48,6 @@ def handle_report_template_command(name: str, activity: str):
 
 def handle_report_generate_command(activity: str):
     generate_reports(activity)
-
-
-"""
-Skill
-"""
-
-
-def handle_skill_create_command(skill: str, activity: str):
-    create_skill(skill=skill, activity=activity)
-
-
-def handle_skill_ls_command(activity: str):
-    skills = get_skills(activity=activity)
-    print(f"{activity} Skills:\n\t" + "\n\t".join(skills))
-
-
-def handle_skill_info_command(skill: str):
-    pass
 
 
 """

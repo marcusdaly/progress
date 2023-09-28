@@ -13,7 +13,6 @@ from commands.cli_commands import (
     handle_practice_cli_command,
     handle_report_cli_command,
     handle_session_cli_command,
-    handle_skill_cli_command,
 )
 
 if __name__ == "__main__":
@@ -27,7 +26,6 @@ if __name__ == "__main__":
     parser_config = subparsers.add_parser("config", help="sets a new configuration")
     parser_activity = subparsers.add_parser("activity", help="manage activities")
     parser_report = subparsers.add_parser("report", help="manage reports")
-    parser_skill = subparsers.add_parser("skill", help="manage skills")
     parser_plan = subparsers.add_parser("plan", help="manage plans")
     parser_session = subparsers.add_parser("session", help="manage sessions")
     parser_practice = subparsers.add_parser("practice", help="manage practices")
@@ -95,38 +93,6 @@ if __name__ == "__main__":
     # report generate
     parser_report_generate.add_argument(
         "--activity", required=True, help="the activity to generate reports for"
-    )
-
-    """
-    Skill
-    """
-    subparsers_skill = parser_skill.add_subparsers(
-        title="subcommands", dest="subcommand", required=True
-    )
-    parser_skill_create = subparsers_skill.add_parser(
-        "create", help="create a new skill"
-    )
-    parser_skill_ls = subparsers_skill.add_parser("ls", help="list all activities")
-    parser_skill_info = subparsers_skill.add_parser(
-        "info", help="get more info on a specific skill"
-    )
-
-    # skill create
-    parser_skill_create.add_argument(
-        "--name", required=True, help="the name of the new skill"
-    )
-    parser_skill_create.add_argument(
-        "--activity", required=True, help="the activity this skill is associated with"
-    )
-
-    # skill ls
-    parser_skill_ls.add_argument(
-        "--activity", required=True, help="the activity this skill is associated with"
-    )
-
-    # skill info
-    parser_skill_info.add_argument(
-        "--name", required=True, help="the name of the skill to get info on"
     )
 
     """
@@ -326,7 +292,6 @@ if __name__ == "__main__":
         "config": handle_config_cli_command,
         "activity": handle_activity_cli_command,
         "report": handle_report_cli_command,
-        "skill": handle_skill_cli_command,
         "plan": handle_plan_cli_command,
         "session": handle_session_cli_command,
         "practice": handle_practice_cli_command,
