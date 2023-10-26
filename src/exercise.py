@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from logging import debug
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,6 +37,62 @@ def _get_exercises_from_file(session_dir: str) -> List[str]:
     return exercises_lines
 
 
+def _handle_metric(line: str, exercise_results: Dict[str, Any]):
+    if line[3:].startswith("Metric: "):
+        metrics = [metric.strip() for metric in line[11:].split("|")]
+        if "completed" not in exercise_results:
+            for metric in metrics:
+                exercise_results[metric] = []
+
+
+def _handle_set(line: str, exercise_results: Dict[str, Any]):
+    set_measurements = [measurement.strip() for measurement in line[3:].split(",")]
+    set_metrics = [
+        _measurement_to_metric(measurement) for measurement in set_measurements
+    ]
+
+    for metric, measurement in zip(set_metrics, set_measurements):
+        if "Hours" == metric and "Minutes" in set_metrics:
+            measurement_val = _filter_non_digits(measurement)
+            new_measurement_val = (
+                float(measurement_val)
+                + int(
+                    _filter_non_digits(set_measurements[set_metrics.index("Minutes")])
+                )
+                / 60
+            )
+            measurement = (
+                f"{new_measurement_val}" f"{measurement.removeprefix(measurement_val)}"
+            )
+
+        if "Minutes" == metric and "Hours" in set_metrics:
+            continue
+
+        if metric in exercise_results:
+            exercise_results[metric].append(measurement)
+
+
+def _handle_exercise(
+    line: str,
+    exercise_results: Dict[str, Any],
+    exercise_name: str,
+) -> bool:
+    found_exercise = False
+    completion_false = line.startswith("- [ ] ")
+    completion_true = line.startswith("- [x] ")
+    new_exercise_name = (
+        line[6:-1] if completion_false or completion_true else line[2:-1]
+    )
+    if new_exercise_name == exercise_name:
+        found_exercise = True
+        exercise_results.clear()
+        if completion_false:
+            exercise_results["completed"] = False
+        if completion_true:
+            exercise_results["completed"] = True
+    return found_exercise
+
+
 def _get_exercise_results_from_file(
     session_dir: str, exercise_name: str
 ) -> Tuple[datetime, dict]:
@@ -47,7 +103,6 @@ def _get_exercise_results_from_file(
     with open(session_dir, "r") as file:
         lines = file.readlines()
 
-    metrics = None
     for line in lines:
         if line.startswith("## Notes"):
             break
@@ -57,61 +112,17 @@ def _get_exercise_results_from_file(
             if skipped:
                 break
 
-            # assert line[2:-1] == session_name, f"{line[2:-1]} != {session_name}"
-
         elif line.startswith("- "):
-            completion_false = line.startswith("- [ ] ")
-            completion_true = line.startswith("- [x] ")
-            new_exercise_name = (
-                line[6:-1] if completion_false or completion_true else line[2:-1]
-            )
             if found_exercise:
+                # We've made it to the next exercise, so we're done!
                 return session_date, exercise_results
-            if new_exercise_name == exercise_name:
-                found_exercise = True
-                exercise_results = {}
-                if completion_false:
-                    exercise_results["completed"] = False
-                if completion_true:
-                    exercise_results["completed"] = True
+            found_exercise = _handle_exercise(line, exercise_results, exercise_name)
 
         elif line.startswith("\t- "):
-            if line[3:].startswith("Metric: "):
-                metrics = [metric.strip() for metric in line[11:].split("|")]
-                if "completed" not in exercise_results:
-                    for metric in metrics:
-                        exercise_results[metric] = []
+            _handle_metric(line, exercise_results)
 
         elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
-            set_measurements = [
-                measurement.strip() for measurement in line[3:].split(",")
-            ]
-            set_metrics = [
-                _measurement_to_metric(measurement) for measurement in set_measurements
-            ]
-
-            for metric, measurement in zip(set_metrics, set_measurements):
-                if "Hours" == metric and "Minutes" in set_metrics:
-                    measurement_val = _filter_non_digits(measurement)
-                    new_measurement_val = (
-                        float(measurement_val)
-                        + int(
-                            _filter_non_digits(
-                                set_measurements[set_metrics.index("Minutes")]
-                            )
-                        )
-                        / 60
-                    )
-                    measurement = (
-                        f"{new_measurement_val}"
-                        f"{measurement.removeprefix(measurement_val)}"
-                    )
-
-                if "Minutes" == metric and "Hours" in set_metrics:
-                    continue
-
-                if metric in exercise_results:
-                    exercise_results[metric].append(measurement)
+            _handle_set(line, exercise_results)
 
     if not found_exercise:
         return session_date, {}
@@ -147,7 +158,8 @@ def get_exercise(
     Args:
         activity (str): The activity of the exercise.
         exercise (str): The specified exercise.
-        start (Optional[str], optional): The date to start looking at historical data. Defaults to None.
+        start (Optional[str], optional): The date to start looking at historical data.
+            Defaults to None.
 
     Returns:
         pd.DataFrame: A dataframe of the results.
@@ -185,7 +197,6 @@ def get_exercise(
             ]
         )
     )
-
     all_data = {}
     for metric in metrics:
         date_and_measurements = [
