@@ -340,6 +340,16 @@ def visualize_exercise_data(
                 color=plots[-1].get_color(),
             )
 
+            max_index = np.argmax(notnan_data[metric])
+            axs[num_plots].axhline(
+                notnan_data[metric].iat[max_index], c="tab:red", ls=":"
+            )
+            axs[num_plots].scatter(
+                notnan_data["Date"].iat[max_index],
+                notnan_data[metric].iat[max_index],
+                c="tab:red",
+            )
+
             exercise_metric_multiline = exercise_metric.replace(" (", "\n")
             exercise_metric_multiline = exercise_metric_multiline.replace(")", "")
             axs[num_plots].set_ylabel(exercise_metric_multiline)
