@@ -93,39 +93,68 @@ def _handle_exercise(
     return found_exercise
 
 
+def _compute_minutes_duration(line: str) -> int:
+    times = line.removeprefix("### ").split("-")
+    start_time = times[0].split(":")
+    if not start_time[0].strip().isdigit() or not start_time[1].strip().isdigit():
+        return None
+    start_hour = int(start_time[0].strip()) % 24
+    start_minutes = int(start_time[1].strip())
+
+    end_time = times[1].split(":")
+    if not end_time[0].strip().isdigit() or not end_time[1].strip().isdigit():
+        return None
+    end_hour = int(end_time[0].strip()) % 24
+    end_minutes = int(end_time[1].strip())
+
+    return end_minutes - start_minutes + (end_hour - start_hour) * 60
+
+
 def _get_exercise_results_from_file(
     session_dir: str, exercise_name: str
 ) -> Tuple[datetime, dict]:
     found_exercise = False
     session_date_str = os.path.split(session_dir)[-1][:10]
-    session_date = datetime.strptime(session_date_str, "%Y-%m-%d")
-    exercise_results = {}
-    with open(session_dir, "r") as file:
-        lines = file.readlines()
 
-    for line in lines:
-        if line.startswith("## Notes"):
-            break
-        if line.startswith("# "):
-            skipped = "skipped" in line.lower()
-            exercise_results["skipped"] = skipped
-            if skipped:
+    try:
+        session_date = datetime.strptime(session_date_str, "%Y-%m-%d")
+        exercise_results = {}
+        with open(session_dir, "r") as file:
+            lines = file.readlines()
+
+        for line in lines:
+            if line.startswith("## Notes"):
                 break
+            if line.startswith("# "):
+                skipped = "skipped" in line.lower()
+                exercise_results["skipped"] = skipped
+                if skipped:
+                    break
+            elif line.startswith("### ") and exercise_name == "Duration":
+                duration = _compute_minutes_duration(line)
+                exercise_results["Duration"] = [str(duration)]
+                if duration is not None:
+                    found_exercise = True
+                break
+            elif line.startswith("- "):
+                if found_exercise:
+                    # We've made it to the next exercise, so we're done!
+                    return session_date, exercise_results
+                found_exercise = _handle_exercise(line, exercise_results, exercise_name)
 
-        elif line.startswith("- "):
-            if found_exercise:
-                # We've made it to the next exercise, so we're done!
-                return session_date, exercise_results
-            found_exercise = _handle_exercise(line, exercise_results, exercise_name)
+            elif line.startswith("\t- "):
+                _handle_metric(line, exercise_results)
 
-        elif line.startswith("\t- "):
-            _handle_metric(line, exercise_results)
+            elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
 
-        elif line.startswith("\t") and len(line) >= 3 and line[2] == ".":
-            _handle_set(line, exercise_results)
+                _handle_set(line, exercise_results)
 
-    if not found_exercise:
-        return session_date, {}
+        if not found_exercise:
+            return session_date, {}
+    except Exception as err:
+        raise RuntimeError(
+            f"Error processing exercise {exercise_name} from {session_date_str}"
+        ) from err
     return session_date, exercise_results
 
 
@@ -136,7 +165,7 @@ def get_exercises(
     if not os.path.isdir(practices_dir):
         raise FileNotFoundError(practices_dir)
 
-    all_session_exercises = []
+    all_session_exercises = ["Duration"]
     for session_path, _, files in os.walk(practices_dir):
         for session in files:
             session_dir = os.path.join(session_path, session)
@@ -188,6 +217,7 @@ def get_exercise(
             if len(session_exercises) > 0 and (start is None or session_date >= start):
                 all_session_exercises.append(session_exercises)
                 session_dates.append(session_date)
+
     metrics = list(
         set(
             [
@@ -199,6 +229,8 @@ def get_exercise(
     )
     all_data = {}
     for metric in metrics:
+        if metric == "skipped":
+            continue
         date_and_measurements = [
             (date, exercise_metrics.get(metric, {}))
             for date, exercise_metrics in zip(session_dates, all_session_exercises)
