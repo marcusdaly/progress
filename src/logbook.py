@@ -4,9 +4,10 @@ Functionality to generate a logbook from climbing practices.
 
 import os
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,17 +18,28 @@ from dir_utils import get_logbook_dir, get_practices_dir
 plt.style.use("seaborn")
 
 
+OUTCOME_TYPE = Union["send", "flash", "working"]
+
+
 @dataclass(frozen=True)
 class ClimbingEntry:
     name: str
     grade: str
-    outcome: str
+    outcome: OUTCOME_TYPE
     description: Optional[str] = None
+
+    @property
+    def name_with_grade(self) -> str:
+        return f"{self.name} {self.grade}"
+
+
+SEND_KEYWORDS = {"send", "repeat"}
+FLASH_KEYWORDS = {"flash"}
 
 
 def parse_climbing_entry_grade_first_section(
     comma_split_entry: list[str],
-) -> tuple[str, str]:
+) -> ClimbingEntry:
     grade_and_name = comma_split_entry[0]
 
     grade_split = grade_and_name.split(" V")
@@ -44,9 +56,30 @@ def parse_climbing_entry_grade_first_section(
 
     name = pre_grade + post_grade
 
-    print("grade", grade)
-    print("name", name)
-    return name, grade
+    if len(comma_split_entry) < 2:
+        raise ValueError(comma_split_entry)
+
+    # should indicate outcome here.
+    effort_and_outcome = comma_split_entry[1]
+    if any(word in effort_and_outcome for word in SEND_KEYWORDS):
+        outcome = "send"
+    elif any(word in effort_and_outcome for word in FLASH_KEYWORDS):
+        outcome = "flash"
+    else:
+        outcome = "working"
+
+    # piece together the rest
+    if len(comma_split_entry) > 2:
+        rest = ",".join(comma_split_entry[2:])
+    else:
+        rest = None
+
+    return ClimbingEntry(
+        name=name,
+        grade=grade,
+        outcome=outcome,
+        description=rest,
+    )
 
 
 def parse_climbing_entry_grade_second_section(
@@ -75,22 +108,16 @@ def parse_climbing_entry(entry: str) -> ClimbingEntry:
         raise ValueError(entry)
 
     # handle case where grade in first section
-    name, grade = parse_climbing_entry_grade_first_section(comma_split_entry)
-
-    entry = ClimbingEntry(
-        name=name,
-        grade=grade,
-        outcome="Unknown",
-    )
+    entry = parse_climbing_entry_grade_first_section(comma_split_entry)
 
     return entry
 
 
-def _get_climbing_results_from_file(session_dir: str) -> Tuple[datetime, Dict]:
+def _get_climbing_results_from_file(session_dir: str) -> list[Tuple[datetime, Dict]]:
     found_exercise = False
     session_date_str = os.path.split(session_dir)[-1][:10]
 
-    climbing_entries: Tuple[str, ClimbingEntry] = []
+    climbing_entries: list[Tuple[str, ClimbingEntry]] = []
 
     # session_date = datetime.strptime(session_date_str, "%Y-%m-%d")
     exercise_results = {}
@@ -130,7 +157,9 @@ def _get_climbing_results_from_file(session_dir: str) -> Tuple[datetime, Dict]:
     return climbing_entries
 
 
-def get_climbing_data(activity: str, start: Optional[str] = None):
+def get_climbing_data(
+    activity: str, start: Optional[str] = None
+) -> list[tuple[str, ClimbingEntry]]:
     if start is not None:
         start = datetime.strptime(start, "%Y-%m-%d")
     practices_dir = get_practices_dir(activity=activity)
@@ -138,7 +167,7 @@ def get_climbing_data(activity: str, start: Optional[str] = None):
         raise FileNotFoundError(practices_dir)
 
     all_entries = []
-    for session_path, _, files in tqdm(os.walk(practices_dir)):
+    for session_path, _, files in tqdm(list(os.walk(practices_dir))):
         for session in files:
             session_dir = os.path.join(session_path, session)
             # extract exercises from session plan
@@ -149,10 +178,35 @@ def get_climbing_data(activity: str, start: Optional[str] = None):
 
 
 def generate_logbook(activity: str):
-    # logbook_dir = get_logbook_dir(activity)
 
     bouldering_data = get_climbing_data(activity=activity, start=None)
-    plot_attempts(bouldering_data)
+    write_logbook(activity, bouldering_data)
+    # plot_attempts(bouldering_data)
+
+
+def write_logbook(activity: str, bouldering_data: list[tuple[str, ClimbingEntry]]):
+    logbook_dir = get_logbook_dir(activity)
+
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
+    logbook_filename = f"{date_str} Logbook.md"
+    logbook_path = f"{logbook_dir}/{logbook_filename}"
+
+    climb_structured_data = defaultdict(list)
+    for entry in bouldering_data:
+        climb_structured_data[entry[1].name_with_grade].append(entry)
+
+    with open(logbook_path, "w") as file:
+        for name_with_grade, entries in climb_structured_data.items():
+            file.write(f"## {name_with_grade}\n")
+            for session_num, date_and_entry in enumerate(entries):
+                date_str = date_and_entry[0]
+                entry = date_and_entry[1]
+                file.write(
+                    f" - Session {session_num+1} ({date_str}): **{entry.outcome}**\n"
+                )
+                if entry.description is not None:
+                    file.write(f"\t- {entry.description}\n")
 
 
 def plot_attempts(bouldering_data: list[tuple[str, ClimbingEntry]]):
