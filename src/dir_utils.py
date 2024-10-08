@@ -18,6 +18,14 @@ def get_reports_dir(activity: str) -> str:
     return reports_dir
 
 
+def get_logbook_dir(activity: str) -> str:
+    logbook_dir = os.path.join(get_activity_dir(activity), "Logbook")
+    if not os.path.isdir(logbook_dir):
+        os.mkdir(logbook_dir)
+
+    return logbook_dir
+
+
 def get_report_dir(name: str, activity: str) -> str:
     reports_dir = get_reports_dir(activity)
     report_dir = os.path.join(reports_dir, name)

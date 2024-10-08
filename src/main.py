@@ -9,6 +9,7 @@ from commands.cli_commands import (
     handle_activity_cli_command,
     handle_config_cli_command,
     handle_exercise_cli_command,
+    handle_logbook_cli_command,
     handle_plan_cli_command,
     handle_practice_cli_command,
     handle_report_cli_command,
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     parser_config = subparsers.add_parser("config", help="sets a new configuration")
     parser_activity = subparsers.add_parser("activity", help="manage activities")
     parser_report = subparsers.add_parser("report", help="manage reports")
+    parser_logbook = subparsers.add_parser("logbook", help="manage logbooks")
     parser_plan = subparsers.add_parser("plan", help="manage plans")
     parser_session = subparsers.add_parser("session", help="manage sessions")
     parser_practice = subparsers.add_parser("practice", help="manage practices")
@@ -93,6 +95,23 @@ if __name__ == "__main__":
     # report generate
     parser_report_generate.add_argument(
         "--activity", required=True, help="the activity to generate reports for"
+    )
+
+    """
+    Logbook
+    """
+    subparsers_logbook = parser_logbook.add_subparsers(
+        title="subcommands", dest="subcommand", required=True
+    )
+    parser_report_template = subparsers_logbook.add_parser(
+        "generate", help="create a logbook of climbs"
+    )
+
+    # report generate
+    parser_report_template.add_argument(
+        "--activity",
+        required=True,
+        help="the (climbing) activity to generate a logbook for",
     )
 
     """
@@ -292,6 +311,7 @@ if __name__ == "__main__":
         "config": handle_config_cli_command,
         "activity": handle_activity_cli_command,
         "report": handle_report_cli_command,
+        "logbook": handle_logbook_cli_command,
         "plan": handle_plan_cli_command,
         "session": handle_session_cli_command,
         "practice": handle_practice_cli_command,

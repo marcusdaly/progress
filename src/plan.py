@@ -18,7 +18,7 @@ from units import (
     combine_units,
 )
 
-plt.style.use("seaborn-v0_8")
+plt.style.use("seaborn")
 
 DOW_TO_INT = {
     "Monday": 0,

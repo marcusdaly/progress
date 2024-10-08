@@ -156,6 +156,8 @@ tomli==2.0.1
     #   build
     #   pep517
     #   pylint
+tqdm==4.66.5
+    # via -r requirements.in
 typing-extensions==4.1.1
     # via
     #   astroid

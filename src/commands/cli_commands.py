@@ -11,6 +11,7 @@ from commands.commands import (
     handle_exercise_compare_command,
     handle_exercise_info_command,
     handle_exercise_ls_command,
+    handle_logbook_generate_command,
     handle_plan_create_command,
     handle_plan_info_command,
     handle_plan_ls_command,
@@ -82,6 +83,23 @@ def _handle_report_template_cli_command(args: Namespace):
 
 def _handle_report_generate_cli_command(args: Namespace):
     handle_report_generate_command(activity=args.activity)
+
+
+"""
+Logbook Commands
+"""
+
+
+def handle_logbook_cli_command(args: Namespace):
+    subcommands = {
+        "generate": _handle_logbook_generate_cli_command,
+    }
+
+    subcommands[args.subcommand](args)
+
+
+def _handle_logbook_generate_cli_command(args: Namespace):
+    handle_logbook_generate_command(activity=args.activity)
 
 
 """

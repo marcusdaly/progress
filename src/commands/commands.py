@@ -4,6 +4,7 @@ Main functionality of the app.
 from activity import create_activity, get_activities, get_activity
 from config import create_config
 from exercise import get_exercise, get_exercises, visualize_exercise_data
+from logbook import generate_logbook
 from plan import create_plan, get_plans, schedule, visualize_plan
 from practice import create_practice
 from report import create_report_template, generate_reports
@@ -48,6 +49,15 @@ def handle_report_template_command(name: str, activity: str):
 
 def handle_report_generate_command(activity: str):
     generate_reports(activity)
+
+
+"""
+Logbook
+"""
+
+
+def handle_logbook_generate_command(activity: str):
+    generate_logbook(activity)
 
 
 """
