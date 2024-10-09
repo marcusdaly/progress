@@ -2,15 +2,18 @@
 Functionality to generate a logbook from climbing practices.
 """
 
+import itertools
 import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Optional, Tuple, Union
+from dateutil import relativedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from dir_utils import get_logbook_dir, get_practices_dir
@@ -181,7 +184,7 @@ def generate_logbook(activity: str):
 
     bouldering_data = get_climbing_data(activity=activity, start=None)
     write_logbook(activity, bouldering_data)
-    # plot_attempts(bouldering_data)
+    plot_attempts(bouldering_data)
 
 
 def write_logbook(activity: str, bouldering_data: list[tuple[str, ClimbingEntry]]):
@@ -212,7 +215,15 @@ def write_logbook(activity: str, bouldering_data: list[tuple[str, ClimbingEntry]
 def plot_attempts(bouldering_data: list[tuple[str, ClimbingEntry]]):
     plt.figure(figsize=(20, 10))
 
-    dates, entries = list(zip(*bouldering_data))
+    dates, entries = list(
+        zip(
+            *[
+                (datetime.strptime(date, "%Y-%m-%d"), entry)
+                for date, entry in bouldering_data
+                if entry.outcome in {"send", "flash"}
+            ]
+        )
+    )
 
     grades = [entry.grade for entry in entries]
     grade_numbers = []
@@ -239,13 +250,77 @@ def plot_attempts(bouldering_data: list[tuple[str, ClimbingEntry]]):
 
         number = float(number)
         if number >= 100:
-            number /= 100
+            number = (number - 50) / 100
 
         number += modifier
 
         grade_numbers.append(number)
-    print(dates, grade_numbers)
-    plt.scatter(dates, grade_numbers, alpha=0.3)
+
+    # add some scatter
+    # grade_numbers = [num - 0.15 + np.random.random() * 0.3 for num in grade_numbers]
+
+    send_dates, send_grade_numbers = list(
+        zip(
+            *[
+                (date, grade_num)
+                for date, grade_num, entry in zip(dates, grade_numbers, entries)
+                if entry.outcome == "send"
+            ]
+        )
+    )
+    flash_dates, flash_grade_numbers = list(
+        zip(
+            *[
+                (date, grade_num)
+                for date, grade_num, entry in zip(dates, grade_numbers, entries)
+                if entry.outcome == "flash"
+            ]
+        )
+    )
+
+    for dates, grade_numbers, label in [
+        (send_dates, send_grade_numbers, "Redpoint"),
+        (flash_dates, flash_grade_numbers, "Flash"),
+    ]:
+        months = [date.strftime("%Y-%m") for date in dates]
+        send_data = pd.DataFrame({"month": months, "grades": grade_numbers})
+        group_p90 = send_data.groupby("month")["grades"].quantile(0.9)
+        month_dates = [
+            datetime.strptime(date_str, "%Y-%m") for date_str in group_p90.index
+        ]
+        month_start_and_ends = list(
+            itertools.chain(
+                *[
+                    [month_date, month_date + relativedelta.relativedelta(months=1)]
+                    for month_date in month_dates
+                ]
+            )
+        )
+        group_p90_repeated = list(
+            itertools.chain(*[[point, point] for point in group_p90])
+        )
+        color = "red" if label == "Redpoint" else "blue"
+        plt.plot(
+            month_start_and_ends,
+            group_p90_repeated,
+            color=color,
+            label=f"Typical {label} Grade",
+        )
+
+    send_series = pd.Series(send_grade_numbers, index=send_dates)
+    flash_series = pd.Series(flash_grade_numbers, index=flash_dates)
+    plt.scatter(
+        send_dates, send_grade_numbers, alpha=0.4, color="red", label="Redpoint"
+    )
+    plt.scatter(
+        flash_dates, flash_grade_numbers, alpha=0.4, color="blue", label="Flash"
+    )
+    # plt.plot(send_dates, mean_send, color="red")
+    # plt.plot(flash_dates, mean_flash, color="blue")
+    # plt.plot(send_dates, p90_send, color="red", ls=":")
+    # plt.plot(flash_dates, p90_flash, color="blue", ls=":")
     plt.xlabel("Date")
     plt.ylabel("V-grade")
+    plt.title("Sends")
+    plt.legend()
     plt.show()
