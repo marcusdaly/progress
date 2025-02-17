@@ -9,11 +9,11 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Optional, Tuple, Union
-from dateutil import relativedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from dateutil import relativedelta
 from tqdm import tqdm
 
 from dir_utils import get_logbook_dir, get_practices_dir
@@ -116,6 +116,9 @@ def parse_climbing_entry(entry: str) -> ClimbingEntry:
     return entry
 
 
+COLORS = ["red", "blue", "green", "purple", "orange", "black", "pink", "yellow"]
+
+
 def _get_climbing_results_from_file(session_dir: str) -> list[Tuple[datetime, Dict]]:
     found_exercise = False
     session_date_str = os.path.split(session_dir)[-1][:10]
@@ -148,10 +151,15 @@ def _get_climbing_results_from_file(session_dir: str) -> list[Tuple[datetime, Di
             and line[2] == "."
         ):
             try:
+                climbing_entry = parse_climbing_entry(". ".join(line.split(". ")[1:]))
+
+                if any(color in climbing_entry.name.lower() for color in COLORS):
+                    continue
+
                 climbing_entries.append(
                     (
                         session_date_str,
-                        parse_climbing_entry(". ".join(line.split(". ")[1:])),
+                        climbing_entry,
                     )
                 )
             except ValueError:
